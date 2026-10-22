@@ -1,0 +1,11 @@
+# MFAHH roadmap (from MFAHH_frontend_prompt.md)
+- [x] Step 1 – Foundation (layout, store, roles, placeholders)
+- [x] Step 2 – Dashboard
+- [ ] Step 3 – Customers, Suppliers, Books
+- [ ] Step 4 – Inventory & Samples
+- [ ] Step 5 – Sales
+- [ ] Step 6 – Purchases & Expenses
+- [ ] Step 7 – Accounts & Banking
+- [ ] Step 8 – Staff & HR
+- [ ] Step 9 – Reports hub
+- [ ] Step 10 – Settings & polish
