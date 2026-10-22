@@ -29,18 +29,18 @@ export function KpiCard({ title, value, sub, subTone = "muted", icon: Icon, tint
     <Tag
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 rounded-2xl border border-border p-4 text-left shadow-card transition",
+        "flex items-center gap-3 rounded-2xl border border-border p-3.5 text-left shadow-card transition",
         t.bg,
         onClick && "cursor-pointer hover:-translate-y-0.5 hover:shadow-lg",
       )}
     >
-      <span className={cn("grid size-11 shrink-0 place-items-center rounded-full text-primary-foreground", t.fg)}>
+      <span className={cn("grid size-10 shrink-0 place-items-center rounded-full text-primary-foreground", t.fg)}>
         <Icon className="size-5" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-medium text-muted-foreground">{title}</p>
+        <p className="text-xs font-medium leading-tight text-muted-foreground">{title}</p>
         <div className="flex items-center gap-1.5">
-          <p className="truncate text-lg font-bold text-navy">{value}</p>
+          <p className="whitespace-nowrap text-base font-bold text-navy 2xl:text-lg">{value}</p>
           {trend === "up" && <TrendingUp className="size-4 text-success" />}
           {trend === "down" && <TrendingDown className="size-4 text-destructive" />}
         </div>
