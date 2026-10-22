@@ -104,7 +104,7 @@ export interface SalesInvoice extends AuditInfo {
   items: LineItem[]; invoiceDiscount: number; taxPct: number;
   paidAmount: number; docStatus: DocStatus; payStatus: PayStatus; remarks?: string;
 }
-const A = (by: string, at: string, appr?: string): AuditInfo => ({ createdBy: by, createdAt: at, approvedBy: appr, approvedAt: appr ? at : undefined });
+const A = (by: string, at: string, appr?: string): AuditInfo => ({ createdBy: by, createdAt: at, ...(appr ? { approvedBy: appr, approvedAt: at } : {}) });
 
 export const salesInvoices: SalesInvoice[] = [
   { id: 'SI01', no: 'INV-1024', date: '2025-09-12', dueDate: '2025-10-12', customerId: 'C001', items: [{ bookId: 'B001', qty: 50, rate: 300, discountPct: 10 }, { bookId: 'B005', qty: 40, rate: 300, discountPct: 10 }], invoiceDiscount: 0, taxPct: 0, paidAmount: 24500, docStatus: 'Approved', payStatus: 'Partially Paid', ...A('Hamza Ali', '2025-09-12T10:15', 'Faisal Qureshi') },

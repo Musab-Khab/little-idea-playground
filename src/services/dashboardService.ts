@@ -13,7 +13,7 @@ export function resolveRange(key: RangeKey, customFrom?: string, customTo?: stri
     case "today": return { from: today, to: today };
     case "week": return { from: startOfWeek(today, { weekStartsOn: 1 }), to: today };
     case "month": return { from: startOfMonth(today), to: today };
-    case "year": return { from: parseISO(financialYears[0].start), to: today };
+    case "year": return { from: parseISO(financialYears[0]!.start), to: today };
     case "custom": return { from: parseISO(customFrom ?? DEMO_TODAY), to: parseISO(customTo ?? DEMO_TODAY) };
   }
 }

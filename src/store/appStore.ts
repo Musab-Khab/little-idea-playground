@@ -51,7 +51,7 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       data: seedData(),
       roleId: "admin",
-      fyId: seed.financialYears[0].id,
+      fyId: seed.financialYears[0]!.id,
       range: "month",
       customFrom: "2025-07-01",
       customTo: seed.DEMO_TODAY,
