@@ -61,7 +61,7 @@ function Dashboard() {
         <KpiCard title="Monthly Purchases" value={formatPKR(k.monthPurchases)} icon={Package} tint="pink" />
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-6">
         <KpiCard title="Today's Expenses" value={formatPKR(k.todayExpenses)} icon={Receipt} tint="pink" trend="down" />
         <KpiCard title="Monthly Expenses" value={formatPKR(k.monthExpenses)} icon={Wallet} tint="orange" />
         <KpiCard title="Gross Profit" sub={rangeLabel} value={formatPKR(k.grossProfit)} icon={PiggyBank} tint="green" trend={k.grossProfit >= 0 ? "up" : "down"} />
@@ -70,7 +70,7 @@ function Dashboard() {
         <KpiCard title="Bank Balance" value={formatPKR(k.bank)} icon={Landmark} tint="blue" />
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-6">
         <KpiCard title="Receivables" value={formatPKR(k.receivables)} sub={`Overdue ${formatPKR(k.receivablesOverdue)}`} subTone="danger" icon={CreditCard} tint="green" onClick={() => go("customers")} />
         <KpiCard title="Payables" value={formatPKR(k.payables)} sub={`Overdue ${formatPKR(k.payablesOverdue)}`} subTone="danger" icon={Wallet} tint="pink" onClick={() => go("suppliers")} />
         <KpiCard title="Stock Summary" value={`${k.stockUnits.toLocaleString()} units`} sub={formatPKR(k.stockValue)} icon={Boxes} tint="blue" onClick={() => go("inventory/stock")} />
@@ -79,7 +79,7 @@ function Dashboard() {
         <KpiCard title="Outstanding Samples" value={`${k.outstandingSamples} slips`} icon={BookOpenCheck} tint="purple" onClick={() => go("inventory/samples")} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-4">
         <ChartCard title="Sales Trend" action={<ModeToggle value={m1} onChange={setM1} />}>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={trendSeries(data, m1)}>
@@ -93,7 +93,7 @@ function Dashboard() {
               <XAxis dataKey="label" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tickFormatter={formatCompact} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} width={40} />
               <Tooltip formatter={(v: number) => formatPKR(v)} contentStyle={tooltipStyle} />
-              <Area type="monotone" dataKey="sales" name="Sales" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#salesFill)" />
+              <Area isAnimationActive={false} type="monotone" dataKey="sales" name="Sales" stroke="var(--chart-1)" strokeWidth={2.5} fill="url(#salesFill)" />
             </AreaChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -105,8 +105,8 @@ function Dashboard() {
               <YAxis tickFormatter={formatCompact} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} width={40} />
               <Tooltip formatter={(v: number) => formatPKR(v)} contentStyle={tooltipStyle} />
               <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="purchases" name="Purchases" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="expenses" name="Expenses" fill="var(--chart-3)" radius={[4, 4, 0, 0]} />
+              <Bar isAnimationActive={false} dataKey="purchases" name="Purchases" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
+              <Bar isAnimationActive={false} dataKey="expenses" name="Expenses" fill="var(--chart-3)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -117,14 +117,14 @@ function Dashboard() {
               <XAxis dataKey="label" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tickFormatter={formatCompact} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} width={40} />
               <Tooltip formatter={(v: number) => formatPKR(v)} contentStyle={tooltipStyle} />
-              <Line type="monotone" dataKey="profit" name="Profit" stroke="var(--chart-2)" strokeWidth={2.5} dot={{ r: 3 }} />
+              <Line isAnimationActive={false} type="monotone" dataKey="profit" name="Profit" stroke="var(--chart-2)" strokeWidth={2.5} dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>
         <ChartCard title="Stock Value by Category">
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
-              <Pie data={stockByCategory(data)} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={3}>
+              <Pie isAnimationActive={false} data={stockByCategory(data)} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={3}>
                 {stockByCategory(data).map((_, i) => <Cell key={i} fill={PIE[i % PIE.length]} />)}
               </Pie>
               <Tooltip formatter={(v: number) => formatPKR(v)} contentStyle={tooltipStyle} />

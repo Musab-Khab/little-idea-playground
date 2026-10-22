@@ -3,13 +3,13 @@ import * as seed from "@/data/mockData";
 import { computeDashboard, resolveRange } from "@/services/dashboardService";
 import type { AppData } from "@/store/appStore";
 
-const data = structuredClone(seed) as unknown as AppData;
+const data = { ...seed } as unknown as AppData;
 
 describe("dashboard figures", () => {
   it("excludes draft/pending invoices from today's sales", () => {
     const k = computeDashboard(data, resolveRange("today"));
-    // Approved on 2025-09-12: INV-1024 (25,200) + INV-1023 (39,270)
-    expect(k.todaySales).toBe(64470);
+    // Approved on 2025-09-12: INV-1024 (24,300) + INV-1023 (38,770 after Rs 500 discount)
+    expect(k.todaySales).toBe(63070);
   });
   it("counts active out-of-stock books only", () => {
     expect(computeDashboard(data, resolveRange("month")).outOfStock).toBe(2);
