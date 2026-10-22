@@ -44,6 +44,7 @@ interface AppState {
   setRange: (r: RangeKey) => void;
   setCustom: (from: string, to: string) => void;
   resetDemo: () => void;
+  updateData: (fn: (d: AppData) => AppData) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -60,6 +61,7 @@ export const useAppStore = create<AppState>()(
       setRange: (range) => set({ range }),
       setCustom: (customFrom, customTo) => set({ customFrom, customTo, range: "custom" }),
       resetDemo: () => set({ data: seedData() }),
+      updateData: (fn) => set((s) => ({ data: fn(s.data) })),
     }),
     {
       name: "mfahh-store",
