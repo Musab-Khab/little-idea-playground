@@ -1,5 +1,5 @@
 import {
-  addDays, endOfMonth, endOfWeek, format, isWithinInterval, parseISO, startOfMonth,
+  addDays, endOfWeek, format, isWithinInterval, parseISO, startOfMonth,
   startOfWeek, startOfYear, subWeeks,
 } from "date-fns";
 import { DEMO_TODAY, docTotal, chartOfAccounts, financialYears, salesTrend, profitTrend, purchasesVsExpenses } from "@/data/mockData";
@@ -145,4 +145,3 @@ export function recentTransactions(data: AppData, n = 8) {
   return rows.sort((a, b) => (a.date === b.date ? b.no.localeCompare(a.no) : b.date.localeCompare(a.date))).slice(0, n);
 }
 
-export { endOfMonth };
