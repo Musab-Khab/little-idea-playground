@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/store/appStore";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/$")({
+export const Route = createFileRoute("/_authenticated/$")({
   head: ({ params }) => {
     const n = findNav(`/${params._splat ?? ""}`);
     const t = n ? (n.page ? `${n.page.title} – ${n.section.title}` : n.section.title) : "Page";

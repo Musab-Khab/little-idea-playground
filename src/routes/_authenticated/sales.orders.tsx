@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatDate, formatPKR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/sales/orders")({
+export const Route = createFileRoute("/_authenticated/sales/orders")({
   head: () => ({
     meta: [
       { title: "Sales Orders – MFAHH" },
