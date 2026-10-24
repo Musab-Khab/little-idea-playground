@@ -15,10 +15,13 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedSplatRouteImport } from './routes/_authenticated/$'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedSuppliersRouteImport } from './routes/_authenticated/suppliers'
 import { Route as AuthenticatedInventoryAdjustmentsRouteImport } from './routes/_authenticated/inventory.adjustments'
 import { Route as AuthenticatedInventoryBooksRouteImport } from './routes/_authenticated/inventory.books'
+import { Route as AuthenticatedInventoryDamagedRouteImport } from './routes/_authenticated/inventory.damaged'
 import { Route as AuthenticatedInventorySamplesRouteImport } from './routes/_authenticated/inventory.samples'
+import { Route as AuthenticatedInventoryStockRouteImport } from './routes/_authenticated/inventory.stock'
 import { Route as AuthenticatedPurchasesInvoicesRouteImport } from './routes/_authenticated/purchases.invoices'
 import { Route as AuthenticatedPurchasesPaymentsRouteImport } from './routes/_authenticated/purchases.payments'
 import { Route as AuthenticatedPurchasesReturnsRouteImport } from './routes/_authenticated/purchases.returns'
@@ -26,12 +29,21 @@ import { Route as AuthenticatedSalesInvoicesRouteImport } from './routes/_authen
 import { Route as AuthenticatedSalesOrdersRouteImport } from './routes/_authenticated/sales.orders'
 import { Route as AuthenticatedSalesReceiptsRouteImport } from './routes/_authenticated/sales.receipts'
 import { Route as AuthenticatedSalesReturnsRouteImport } from './routes/_authenticated/sales.returns'
+import { Route as AuthenticatedSettingsAuditLogRouteImport } from './routes/_authenticated/settings.audit-log'
+import { Route as AuthenticatedSettingsBackupAndRestoreRouteImport } from './routes/_authenticated/settings.backup-and-restore'
+import { Route as AuthenticatedSettingsFinancialYearsRouteImport } from './routes/_authenticated/settings.financial-years'
+import { Route as AuthenticatedSettingsUsersAndRolesRouteImport } from './routes/_authenticated/settings.users-and-roles'
+import { Route as AuthenticatedStaffAttendanceAndLeaveRouteImport } from './routes/_authenticated/staff.attendance-and-leave'
 import { Route as AuthenticatedStaffDocumentsRouteImport } from './routes/_authenticated/staff.documents'
+import { Route as AuthenticatedStaffPayrollRouteImport } from './routes/_authenticated/staff.payroll'
 import { Route as AuthenticatedStaffStaffRouteImport } from './routes/_authenticated/staff.staff'
 import { Route as AuthenticatedTransactionsBankAccountsRouteImport } from './routes/_authenticated/transactions.bank-accounts'
+import { Route as AuthenticatedTransactionsCashBookRouteImport } from './routes/_authenticated/transactions.cash-book'
 import { Route as AuthenticatedTransactionsChartOfAccountsRouteImport } from './routes/_authenticated/transactions.chart-of-accounts'
 import { Route as AuthenticatedTransactionsExpensesRouteImport } from './routes/_authenticated/transactions.expenses'
+import { Route as AuthenticatedTransactionsGeneralLedgerRouteImport } from './routes/_authenticated/transactions.general-ledger'
 import { Route as AuthenticatedTransactionsJournalRouteImport } from './routes/_authenticated/transactions.journal'
+import { Route as AuthenticatedTransactionsVouchersRouteImport } from './routes/_authenticated/transactions.vouchers'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -62,6 +74,11 @@ const AuthenticatedCustomersRoute = AuthenticatedCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSuppliersRoute = AuthenticatedSuppliersRouteImport.update({
   id: '/suppliers',
   path: '/suppliers',
@@ -79,10 +96,22 @@ const AuthenticatedInventoryBooksRoute =
     path: '/inventory/books',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedInventoryDamagedRoute =
+  AuthenticatedInventoryDamagedRouteImport.update({
+    id: '/inventory/damaged',
+    path: '/inventory/damaged',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInventorySamplesRoute =
   AuthenticatedInventorySamplesRouteImport.update({
     id: '/inventory/samples',
     path: '/inventory/samples',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedInventoryStockRoute =
+  AuthenticatedInventoryStockRouteImport.update({
+    id: '/inventory/stock',
+    path: '/inventory/stock',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPurchasesInvoicesRoute =
@@ -127,10 +156,46 @@ const AuthenticatedSalesReturnsRoute =
     path: '/sales/returns',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsAuditLogRoute =
+  AuthenticatedSettingsAuditLogRouteImport.update({
+    id: '/settings/audit-log',
+    path: '/settings/audit-log',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsBackupAndRestoreRoute =
+  AuthenticatedSettingsBackupAndRestoreRouteImport.update({
+    id: '/settings/backup-and-restore',
+    path: '/settings/backup-and-restore',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsFinancialYearsRoute =
+  AuthenticatedSettingsFinancialYearsRouteImport.update({
+    id: '/settings/financial-years',
+    path: '/settings/financial-years',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsUsersAndRolesRoute =
+  AuthenticatedSettingsUsersAndRolesRouteImport.update({
+    id: '/settings/users-and-roles',
+    path: '/settings/users-and-roles',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStaffAttendanceAndLeaveRoute =
+  AuthenticatedStaffAttendanceAndLeaveRouteImport.update({
+    id: '/staff/attendance-and-leave',
+    path: '/staff/attendance-and-leave',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedStaffDocumentsRoute =
   AuthenticatedStaffDocumentsRouteImport.update({
     id: '/staff/documents',
     path: '/staff/documents',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStaffPayrollRoute =
+  AuthenticatedStaffPayrollRouteImport.update({
+    id: '/staff/payroll',
+    path: '/staff/payroll',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedStaffStaffRoute = AuthenticatedStaffStaffRouteImport.update({
@@ -142,6 +207,12 @@ const AuthenticatedTransactionsBankAccountsRoute =
   AuthenticatedTransactionsBankAccountsRouteImport.update({
     id: '/transactions/bank-accounts',
     path: '/transactions/bank-accounts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTransactionsCashBookRoute =
+  AuthenticatedTransactionsCashBookRouteImport.update({
+    id: '/transactions/cash-book',
+    path: '/transactions/cash-book',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedTransactionsChartOfAccountsRoute =
@@ -156,10 +227,22 @@ const AuthenticatedTransactionsExpensesRoute =
     path: '/transactions/expenses',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTransactionsGeneralLedgerRoute =
+  AuthenticatedTransactionsGeneralLedgerRouteImport.update({
+    id: '/transactions/general-ledger',
+    path: '/transactions/general-ledger',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTransactionsJournalRoute =
   AuthenticatedTransactionsJournalRouteImport.update({
     id: '/transactions/journal',
     path: '/transactions/journal',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTransactionsVouchersRoute =
+  AuthenticatedTransactionsVouchersRouteImport.update({
+    id: '/transactions/vouchers',
+    path: '/transactions/vouchers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -169,10 +252,13 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/$': typeof AuthenticatedSplatRoute
   '/customers': typeof AuthenticatedCustomersRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
   '/inventory/adjustments': typeof AuthenticatedInventoryAdjustmentsRoute
   '/inventory/books': typeof AuthenticatedInventoryBooksRoute
+  '/inventory/damaged': typeof AuthenticatedInventoryDamagedRoute
   '/inventory/samples': typeof AuthenticatedInventorySamplesRoute
+  '/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/purchases/invoices': typeof AuthenticatedPurchasesInvoicesRoute
   '/purchases/payments': typeof AuthenticatedPurchasesPaymentsRoute
   '/purchases/returns': typeof AuthenticatedPurchasesReturnsRoute
@@ -180,23 +266,35 @@ export interface FileRoutesByFullPath {
   '/sales/orders': typeof AuthenticatedSalesOrdersRoute
   '/sales/receipts': typeof AuthenticatedSalesReceiptsRoute
   '/sales/returns': typeof AuthenticatedSalesReturnsRoute
+  '/settings/audit-log': typeof AuthenticatedSettingsAuditLogRoute
+  '/settings/backup-and-restore': typeof AuthenticatedSettingsBackupAndRestoreRoute
+  '/settings/financial-years': typeof AuthenticatedSettingsFinancialYearsRoute
+  '/settings/users-and-roles': typeof AuthenticatedSettingsUsersAndRolesRoute
+  '/staff/attendance-and-leave': typeof AuthenticatedStaffAttendanceAndLeaveRoute
   '/staff/documents': typeof AuthenticatedStaffDocumentsRoute
+  '/staff/payroll': typeof AuthenticatedStaffPayrollRoute
   '/staff/staff': typeof AuthenticatedStaffStaffRoute
   '/transactions/bank-accounts': typeof AuthenticatedTransactionsBankAccountsRoute
+  '/transactions/cash-book': typeof AuthenticatedTransactionsCashBookRoute
   '/transactions/chart-of-accounts': typeof AuthenticatedTransactionsChartOfAccountsRoute
   '/transactions/expenses': typeof AuthenticatedTransactionsExpensesRoute
+  '/transactions/general-ledger': typeof AuthenticatedTransactionsGeneralLedgerRoute
   '/transactions/journal': typeof AuthenticatedTransactionsJournalRoute
+  '/transactions/vouchers': typeof AuthenticatedTransactionsVouchersRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/$': typeof AuthenticatedSplatRoute
   '/customers': typeof AuthenticatedCustomersRoute
+  '/reports': typeof AuthenticatedReportsRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
   '/': typeof AuthenticatedIndexRoute
   '/inventory/adjustments': typeof AuthenticatedInventoryAdjustmentsRoute
   '/inventory/books': typeof AuthenticatedInventoryBooksRoute
+  '/inventory/damaged': typeof AuthenticatedInventoryDamagedRoute
   '/inventory/samples': typeof AuthenticatedInventorySamplesRoute
+  '/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/purchases/invoices': typeof AuthenticatedPurchasesInvoicesRoute
   '/purchases/payments': typeof AuthenticatedPurchasesPaymentsRoute
   '/purchases/returns': typeof AuthenticatedPurchasesReturnsRoute
@@ -204,12 +302,21 @@ export interface FileRoutesByTo {
   '/sales/orders': typeof AuthenticatedSalesOrdersRoute
   '/sales/receipts': typeof AuthenticatedSalesReceiptsRoute
   '/sales/returns': typeof AuthenticatedSalesReturnsRoute
+  '/settings/audit-log': typeof AuthenticatedSettingsAuditLogRoute
+  '/settings/backup-and-restore': typeof AuthenticatedSettingsBackupAndRestoreRoute
+  '/settings/financial-years': typeof AuthenticatedSettingsFinancialYearsRoute
+  '/settings/users-and-roles': typeof AuthenticatedSettingsUsersAndRolesRoute
+  '/staff/attendance-and-leave': typeof AuthenticatedStaffAttendanceAndLeaveRoute
   '/staff/documents': typeof AuthenticatedStaffDocumentsRoute
+  '/staff/payroll': typeof AuthenticatedStaffPayrollRoute
   '/staff/staff': typeof AuthenticatedStaffStaffRoute
   '/transactions/bank-accounts': typeof AuthenticatedTransactionsBankAccountsRoute
+  '/transactions/cash-book': typeof AuthenticatedTransactionsCashBookRoute
   '/transactions/chart-of-accounts': typeof AuthenticatedTransactionsChartOfAccountsRoute
   '/transactions/expenses': typeof AuthenticatedTransactionsExpensesRoute
+  '/transactions/general-ledger': typeof AuthenticatedTransactionsGeneralLedgerRoute
   '/transactions/journal': typeof AuthenticatedTransactionsJournalRoute
+  '/transactions/vouchers': typeof AuthenticatedTransactionsVouchersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -218,11 +325,14 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/$': typeof AuthenticatedSplatRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/suppliers': typeof AuthenticatedSuppliersRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/inventory/adjustments': typeof AuthenticatedInventoryAdjustmentsRoute
   '/_authenticated/inventory/books': typeof AuthenticatedInventoryBooksRoute
+  '/_authenticated/inventory/damaged': typeof AuthenticatedInventoryDamagedRoute
   '/_authenticated/inventory/samples': typeof AuthenticatedInventorySamplesRoute
+  '/_authenticated/inventory/stock': typeof AuthenticatedInventoryStockRoute
   '/_authenticated/purchases/invoices': typeof AuthenticatedPurchasesInvoicesRoute
   '/_authenticated/purchases/payments': typeof AuthenticatedPurchasesPaymentsRoute
   '/_authenticated/purchases/returns': typeof AuthenticatedPurchasesReturnsRoute
@@ -230,12 +340,21 @@ export interface FileRoutesById {
   '/_authenticated/sales/orders': typeof AuthenticatedSalesOrdersRoute
   '/_authenticated/sales/receipts': typeof AuthenticatedSalesReceiptsRoute
   '/_authenticated/sales/returns': typeof AuthenticatedSalesReturnsRoute
+  '/_authenticated/settings/audit-log': typeof AuthenticatedSettingsAuditLogRoute
+  '/_authenticated/settings/backup-and-restore': typeof AuthenticatedSettingsBackupAndRestoreRoute
+  '/_authenticated/settings/financial-years': typeof AuthenticatedSettingsFinancialYearsRoute
+  '/_authenticated/settings/users-and-roles': typeof AuthenticatedSettingsUsersAndRolesRoute
+  '/_authenticated/staff/attendance-and-leave': typeof AuthenticatedStaffAttendanceAndLeaveRoute
   '/_authenticated/staff/documents': typeof AuthenticatedStaffDocumentsRoute
+  '/_authenticated/staff/payroll': typeof AuthenticatedStaffPayrollRoute
   '/_authenticated/staff/staff': typeof AuthenticatedStaffStaffRoute
   '/_authenticated/transactions/bank-accounts': typeof AuthenticatedTransactionsBankAccountsRoute
+  '/_authenticated/transactions/cash-book': typeof AuthenticatedTransactionsCashBookRoute
   '/_authenticated/transactions/chart-of-accounts': typeof AuthenticatedTransactionsChartOfAccountsRoute
   '/_authenticated/transactions/expenses': typeof AuthenticatedTransactionsExpensesRoute
+  '/_authenticated/transactions/general-ledger': typeof AuthenticatedTransactionsGeneralLedgerRoute
   '/_authenticated/transactions/journal': typeof AuthenticatedTransactionsJournalRoute
+  '/_authenticated/transactions/vouchers': typeof AuthenticatedTransactionsVouchersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -245,10 +364,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/$'
     | '/customers'
+    | '/reports'
     | '/suppliers'
     | '/inventory/adjustments'
     | '/inventory/books'
+    | '/inventory/damaged'
     | '/inventory/samples'
+    | '/inventory/stock'
     | '/purchases/invoices'
     | '/purchases/payments'
     | '/purchases/returns'
@@ -256,23 +378,35 @@ export interface FileRouteTypes {
     | '/sales/orders'
     | '/sales/receipts'
     | '/sales/returns'
+    | '/settings/audit-log'
+    | '/settings/backup-and-restore'
+    | '/settings/financial-years'
+    | '/settings/users-and-roles'
+    | '/staff/attendance-and-leave'
     | '/staff/documents'
+    | '/staff/payroll'
     | '/staff/staff'
     | '/transactions/bank-accounts'
+    | '/transactions/cash-book'
     | '/transactions/chart-of-accounts'
     | '/transactions/expenses'
+    | '/transactions/general-ledger'
     | '/transactions/journal'
+    | '/transactions/vouchers'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
     | '/reset-password'
     | '/$'
     | '/customers'
+    | '/reports'
     | '/suppliers'
     | '/'
     | '/inventory/adjustments'
     | '/inventory/books'
+    | '/inventory/damaged'
     | '/inventory/samples'
+    | '/inventory/stock'
     | '/purchases/invoices'
     | '/purchases/payments'
     | '/purchases/returns'
@@ -280,12 +414,21 @@ export interface FileRouteTypes {
     | '/sales/orders'
     | '/sales/receipts'
     | '/sales/returns'
+    | '/settings/audit-log'
+    | '/settings/backup-and-restore'
+    | '/settings/financial-years'
+    | '/settings/users-and-roles'
+    | '/staff/attendance-and-leave'
     | '/staff/documents'
+    | '/staff/payroll'
     | '/staff/staff'
     | '/transactions/bank-accounts'
+    | '/transactions/cash-book'
     | '/transactions/chart-of-accounts'
     | '/transactions/expenses'
+    | '/transactions/general-ledger'
     | '/transactions/journal'
+    | '/transactions/vouchers'
   id:
     | '__root__'
     | '/_authenticated'
@@ -293,11 +436,14 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/$'
     | '/_authenticated/customers'
+    | '/_authenticated/reports'
     | '/_authenticated/suppliers'
     | '/_authenticated/'
     | '/_authenticated/inventory/adjustments'
     | '/_authenticated/inventory/books'
+    | '/_authenticated/inventory/damaged'
     | '/_authenticated/inventory/samples'
+    | '/_authenticated/inventory/stock'
     | '/_authenticated/purchases/invoices'
     | '/_authenticated/purchases/payments'
     | '/_authenticated/purchases/returns'
@@ -305,12 +451,21 @@ export interface FileRouteTypes {
     | '/_authenticated/sales/orders'
     | '/_authenticated/sales/receipts'
     | '/_authenticated/sales/returns'
+    | '/_authenticated/settings/audit-log'
+    | '/_authenticated/settings/backup-and-restore'
+    | '/_authenticated/settings/financial-years'
+    | '/_authenticated/settings/users-and-roles'
+    | '/_authenticated/staff/attendance-and-leave'
     | '/_authenticated/staff/documents'
+    | '/_authenticated/staff/payroll'
     | '/_authenticated/staff/staff'
     | '/_authenticated/transactions/bank-accounts'
+    | '/_authenticated/transactions/cash-book'
     | '/_authenticated/transactions/chart-of-accounts'
     | '/_authenticated/transactions/expenses'
+    | '/_authenticated/transactions/general-ledger'
     | '/_authenticated/transactions/journal'
+    | '/_authenticated/transactions/vouchers'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -363,6 +518,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCustomersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/suppliers': {
       id: '/_authenticated/suppliers'
       path: '/suppliers'
@@ -384,11 +546,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInventoryBooksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/inventory/damaged': {
+      id: '/_authenticated/inventory/damaged'
+      path: '/inventory/damaged'
+      fullPath: '/inventory/damaged'
+      preLoaderRoute: typeof AuthenticatedInventoryDamagedRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/inventory/samples': {
       id: '/_authenticated/inventory/samples'
       path: '/inventory/samples'
       fullPath: '/inventory/samples'
       preLoaderRoute: typeof AuthenticatedInventorySamplesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/inventory/stock': {
+      id: '/_authenticated/inventory/stock'
+      path: '/inventory/stock'
+      fullPath: '/inventory/stock'
+      preLoaderRoute: typeof AuthenticatedInventoryStockRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/purchases/invoices': {
@@ -440,11 +616,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSalesReturnsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings/audit-log': {
+      id: '/_authenticated/settings/audit-log'
+      path: '/settings/audit-log'
+      fullPath: '/settings/audit-log'
+      preLoaderRoute: typeof AuthenticatedSettingsAuditLogRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/backup-and-restore': {
+      id: '/_authenticated/settings/backup-and-restore'
+      path: '/settings/backup-and-restore'
+      fullPath: '/settings/backup-and-restore'
+      preLoaderRoute: typeof AuthenticatedSettingsBackupAndRestoreRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/financial-years': {
+      id: '/_authenticated/settings/financial-years'
+      path: '/settings/financial-years'
+      fullPath: '/settings/financial-years'
+      preLoaderRoute: typeof AuthenticatedSettingsFinancialYearsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/users-and-roles': {
+      id: '/_authenticated/settings/users-and-roles'
+      path: '/settings/users-and-roles'
+      fullPath: '/settings/users-and-roles'
+      preLoaderRoute: typeof AuthenticatedSettingsUsersAndRolesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/staff/attendance-and-leave': {
+      id: '/_authenticated/staff/attendance-and-leave'
+      path: '/staff/attendance-and-leave'
+      fullPath: '/staff/attendance-and-leave'
+      preLoaderRoute: typeof AuthenticatedStaffAttendanceAndLeaveRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/staff/documents': {
       id: '/_authenticated/staff/documents'
       path: '/staff/documents'
       fullPath: '/staff/documents'
       preLoaderRoute: typeof AuthenticatedStaffDocumentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/staff/payroll': {
+      id: '/_authenticated/staff/payroll'
+      path: '/staff/payroll'
+      fullPath: '/staff/payroll'
+      preLoaderRoute: typeof AuthenticatedStaffPayrollRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/staff/staff': {
@@ -461,6 +679,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsBankAccountsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/transactions/cash-book': {
+      id: '/_authenticated/transactions/cash-book'
+      path: '/transactions/cash-book'
+      fullPath: '/transactions/cash-book'
+      preLoaderRoute: typeof AuthenticatedTransactionsCashBookRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/transactions/chart-of-accounts': {
       id: '/_authenticated/transactions/chart-of-accounts'
       path: '/transactions/chart-of-accounts'
@@ -475,11 +700,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsExpensesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/transactions/general-ledger': {
+      id: '/_authenticated/transactions/general-ledger'
+      path: '/transactions/general-ledger'
+      fullPath: '/transactions/general-ledger'
+      preLoaderRoute: typeof AuthenticatedTransactionsGeneralLedgerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/transactions/journal': {
       id: '/_authenticated/transactions/journal'
       path: '/transactions/journal'
       fullPath: '/transactions/journal'
       preLoaderRoute: typeof AuthenticatedTransactionsJournalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/transactions/vouchers': {
+      id: '/_authenticated/transactions/vouchers'
+      path: '/transactions/vouchers'
+      fullPath: '/transactions/vouchers'
+      preLoaderRoute: typeof AuthenticatedTransactionsVouchersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
@@ -488,11 +727,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSplatRoute: typeof AuthenticatedSplatRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedSuppliersRoute: typeof AuthenticatedSuppliersRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedInventoryAdjustmentsRoute: typeof AuthenticatedInventoryAdjustmentsRoute
   AuthenticatedInventoryBooksRoute: typeof AuthenticatedInventoryBooksRoute
+  AuthenticatedInventoryDamagedRoute: typeof AuthenticatedInventoryDamagedRoute
   AuthenticatedInventorySamplesRoute: typeof AuthenticatedInventorySamplesRoute
+  AuthenticatedInventoryStockRoute: typeof AuthenticatedInventoryStockRoute
   AuthenticatedPurchasesInvoicesRoute: typeof AuthenticatedPurchasesInvoicesRoute
   AuthenticatedPurchasesPaymentsRoute: typeof AuthenticatedPurchasesPaymentsRoute
   AuthenticatedPurchasesReturnsRoute: typeof AuthenticatedPurchasesReturnsRoute
@@ -500,23 +742,35 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSalesOrdersRoute: typeof AuthenticatedSalesOrdersRoute
   AuthenticatedSalesReceiptsRoute: typeof AuthenticatedSalesReceiptsRoute
   AuthenticatedSalesReturnsRoute: typeof AuthenticatedSalesReturnsRoute
+  AuthenticatedSettingsAuditLogRoute: typeof AuthenticatedSettingsAuditLogRoute
+  AuthenticatedSettingsBackupAndRestoreRoute: typeof AuthenticatedSettingsBackupAndRestoreRoute
+  AuthenticatedSettingsFinancialYearsRoute: typeof AuthenticatedSettingsFinancialYearsRoute
+  AuthenticatedSettingsUsersAndRolesRoute: typeof AuthenticatedSettingsUsersAndRolesRoute
+  AuthenticatedStaffAttendanceAndLeaveRoute: typeof AuthenticatedStaffAttendanceAndLeaveRoute
   AuthenticatedStaffDocumentsRoute: typeof AuthenticatedStaffDocumentsRoute
+  AuthenticatedStaffPayrollRoute: typeof AuthenticatedStaffPayrollRoute
   AuthenticatedStaffStaffRoute: typeof AuthenticatedStaffStaffRoute
   AuthenticatedTransactionsBankAccountsRoute: typeof AuthenticatedTransactionsBankAccountsRoute
+  AuthenticatedTransactionsCashBookRoute: typeof AuthenticatedTransactionsCashBookRoute
   AuthenticatedTransactionsChartOfAccountsRoute: typeof AuthenticatedTransactionsChartOfAccountsRoute
   AuthenticatedTransactionsExpensesRoute: typeof AuthenticatedTransactionsExpensesRoute
+  AuthenticatedTransactionsGeneralLedgerRoute: typeof AuthenticatedTransactionsGeneralLedgerRoute
   AuthenticatedTransactionsJournalRoute: typeof AuthenticatedTransactionsJournalRoute
+  AuthenticatedTransactionsVouchersRoute: typeof AuthenticatedTransactionsVouchersRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSplatRoute: AuthenticatedSplatRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedSuppliersRoute: AuthenticatedSuppliersRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedInventoryAdjustmentsRoute:
     AuthenticatedInventoryAdjustmentsRoute,
   AuthenticatedInventoryBooksRoute: AuthenticatedInventoryBooksRoute,
+  AuthenticatedInventoryDamagedRoute: AuthenticatedInventoryDamagedRoute,
   AuthenticatedInventorySamplesRoute: AuthenticatedInventorySamplesRoute,
+  AuthenticatedInventoryStockRoute: AuthenticatedInventoryStockRoute,
   AuthenticatedPurchasesInvoicesRoute: AuthenticatedPurchasesInvoicesRoute,
   AuthenticatedPurchasesPaymentsRoute: AuthenticatedPurchasesPaymentsRoute,
   AuthenticatedPurchasesReturnsRoute: AuthenticatedPurchasesReturnsRoute,
@@ -524,15 +778,31 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSalesOrdersRoute: AuthenticatedSalesOrdersRoute,
   AuthenticatedSalesReceiptsRoute: AuthenticatedSalesReceiptsRoute,
   AuthenticatedSalesReturnsRoute: AuthenticatedSalesReturnsRoute,
+  AuthenticatedSettingsAuditLogRoute: AuthenticatedSettingsAuditLogRoute,
+  AuthenticatedSettingsBackupAndRestoreRoute:
+    AuthenticatedSettingsBackupAndRestoreRoute,
+  AuthenticatedSettingsFinancialYearsRoute:
+    AuthenticatedSettingsFinancialYearsRoute,
+  AuthenticatedSettingsUsersAndRolesRoute:
+    AuthenticatedSettingsUsersAndRolesRoute,
+  AuthenticatedStaffAttendanceAndLeaveRoute:
+    AuthenticatedStaffAttendanceAndLeaveRoute,
   AuthenticatedStaffDocumentsRoute: AuthenticatedStaffDocumentsRoute,
+  AuthenticatedStaffPayrollRoute: AuthenticatedStaffPayrollRoute,
   AuthenticatedStaffStaffRoute: AuthenticatedStaffStaffRoute,
   AuthenticatedTransactionsBankAccountsRoute:
     AuthenticatedTransactionsBankAccountsRoute,
+  AuthenticatedTransactionsCashBookRoute:
+    AuthenticatedTransactionsCashBookRoute,
   AuthenticatedTransactionsChartOfAccountsRoute:
     AuthenticatedTransactionsChartOfAccountsRoute,
   AuthenticatedTransactionsExpensesRoute:
     AuthenticatedTransactionsExpensesRoute,
+  AuthenticatedTransactionsGeneralLedgerRoute:
+    AuthenticatedTransactionsGeneralLedgerRoute,
   AuthenticatedTransactionsJournalRoute: AuthenticatedTransactionsJournalRoute,
+  AuthenticatedTransactionsVouchersRoute:
+    AuthenticatedTransactionsVouchersRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
