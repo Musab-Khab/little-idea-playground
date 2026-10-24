@@ -27,6 +27,15 @@ function seedData() {
     auditLog: seed.auditLog,
     numberSeries: seed.numberSeries,
     roles: seed.roles,
+    staff: seed.staff,
+    attendance: seed.attendance,
+    leaveApplications: seed.leaveApplications,
+    payroll: seed.payroll,
+    staffLoans: seed.staffLoans,
+    staffDocuments: seed.staffDocuments,
+    financialYears: seed.financialYears,
+    company: seed.company,
+    expenseHeads: seed.expenseHeads,
   });
 }
 
@@ -52,7 +61,7 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       data: seedData(),
       roleId: "admin",
-      fyId: seed.financialYears[0]!.id,
+      fyId: seed.financialYears[0]?.id ?? "FY2025-26",
       range: "month",
       customFrom: "2025-07-01",
       customTo: seed.DEMO_TODAY,
@@ -67,6 +76,10 @@ export const useAppStore = create<AppState>()(
       name: "mfahh-store",
       storage: createJSONStorage(() => localStorage),
       skipHydration: true,
+      merge: (persisted, current) => {
+        const saved = persisted as Partial<AppState> | undefined;
+        return { ...current, ...saved, data: { ...current.data, ...saved?.data } };
+      },
     },
   ),
 );
