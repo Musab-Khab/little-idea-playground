@@ -3,7 +3,7 @@ export type Collection = Exclude<keyof AppData,'company'|'numberSeries'|'expense
 export interface Field {key:string;label:string;type?:'number'|'date'|'select'|'text'|'month';options?:string[];source?:'books'|'customers'|'suppliers'|'staff'|'bankAccounts'|'chartOfAccounts';required?:boolean;}
 export interface ModuleConfig { title:string; section:string; collection:Collection; permission:string; approve?:string; prefix?:keyof AppData['numberSeries'];fields:Field[];columns:string[];lines?:'invoice'|'return'|'sample'|'journal'; master?:boolean; }
 const f=(key:string,label:string,type:Field['type']='text',required=false):Field=>({key,label,type,required});
-const pick=(key:string,label:string,source:Field['source'],required=true):Field=>({key,label,source,required});
+const pick=(key:string,label:string,source:NonNullable<Field['source']>,required=true):Field=>({key,label,source,required});
 const opt=(key:string,label:string,options:string[]):Field=>({key,label,type:'select',options,required:true});
 const date=f('date','Date','date',true);
 const status=opt('status','Status',['Active','Inactive']);
