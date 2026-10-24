@@ -2,6 +2,8 @@ import { useMemo, useState, type ReactNode } from "react";
 import { ArrowUpDown, Download, Printer, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { exportExcel, exportPdf } from "@/services/exportService";
+import { toast } from "sonner";
 
 export interface Column<T> {
   key: string;
@@ -28,24 +30,18 @@ export function DataTable<T>({ rows, columns, pageSize = 10, compact, exportName
     const term = q.toLowerCase();
     let r = term ? rows.filter((row) => columns.some((c) => String(c.value(row)).toLowerCase().includes(term))) : rows;
     if (sort) {
-      const col = columns.find((c) => c.key === sort.key)!;
-      r = [...r].sort((a, b) => (col.value(a) > col.value(b) ? 1 : -1) * sort.dir);
+      const col = columns.find((c) => c.key === sort.key);
+      if (col) r = [...r].sort((a, b) => (col.value(a) > col.value(b) ? 1 : -1) * sort.dir);
     }
     return r;
   }, [rows, columns, q, sort]);
 
   const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const view = filtered.slice(page * pageSize, page * pageSize + pageSize);
+  const currentPage = Math.min(page, pages - 1);
+  const view = filtered.slice(currentPage * pageSize, currentPage * pageSize + pageSize);
 
-  const exportCsv = () => {
-    const csv = [columns.map((c) => c.header), ...filtered.map((r) => columns.map((c) => c.value(r)))]
-      .map((line) => line.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    a.download = `${exportName}.csv`;
-    a.click();
-  };
+  const exportRows = () => { const visible = columns.filter(c => c.header && !["Actions", "Decision", "Action"].includes(c.header)); return { headers: visible.map(c=>c.header), rows: filtered.map(r=>visible.map(c=>c.value(r))) }; };
+  const download = async (kind: "excel" | "pdf") => { try { const {headers, rows} = exportRows(); await (kind === "excel" ? exportExcel(exportName,headers,rows) : exportPdf(exportName,headers,rows)); } catch { toast.error("Unable to export records."); } };
 
   return (
     <div>
@@ -55,7 +51,8 @@ export function DataTable<T>({ rows, columns, pageSize = 10, compact, exportName
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="Search…" className="pl-9" />
           </div>
-          <Button variant="outline" size="sm" onClick={exportCsv}><Download className="size-4" />Excel</Button>
+          <Button variant="outline" size="sm" onClick={() => download("excel")}><Download className="size-4" />Excel</Button>
+          <Button variant="outline" size="sm" onClick={() => download("pdf")}><Download className="size-4" />PDF</Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="size-4" />Print</Button>
         </div>
       )}
