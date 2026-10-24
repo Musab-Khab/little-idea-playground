@@ -1,4 +1,5 @@
 # MFAHH roadmap (from MFAHH_frontend_prompt.md)
+- [ ] Login without profiles, sign-out and password recovery
 - [x] Step 1 – Foundation (layout, store, roles, placeholders)
 - [x] Step 2 – Dashboard
 - [ ] Step 3 – Customers, Suppliers, Books
