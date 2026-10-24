@@ -3,6 +3,7 @@ import {
   startOfWeek, startOfYear, subWeeks,
 } from "date-fns";
 import { DEMO_TODAY, docTotal, chartOfAccounts, financialYears, salesTrend, profitTrend, purchasesVsExpenses } from "@/data/mockData";
+import { partyBalance } from "@/services/moduleService";
 import type { AppData, RangeKey } from "@/store/appStore";
 
 export interface Range { from: Date; to: Date }
@@ -55,10 +56,10 @@ export function computeDashboard(data: AppData, r: Range) {
   const bank = data.bankAccounts.filter((b) => b.status === "Active").reduce((s, b) => s + b.current, 0);
 
   const openInv = approved(data.salesInvoices).filter((i) => i.payStatus !== "Paid");
-  const receivables = data.customers.reduce((s, c) => s + c.openingBalance, 0) + openInv.reduce((s, i) => s + docTotal(i) - i.paidAmount, 0);
+  const receivables = data.customers.reduce((s, c) => s + partyBalance(data, c.id, true), 0);
   const receivablesOverdue = openInv.filter((i) => parseISO(i.dueDate) < today).reduce((s, i) => s + docTotal(i) - i.paidAmount, 0);
   const openPinv = approved(data.purchaseInvoices).filter((i) => i.payStatus !== "Paid");
-  const payables = data.suppliers.reduce((s, c) => s + c.openingBalance, 0) + openPinv.reduce((s, i) => s + docTotal(i) - i.paidAmount, 0);
+  const payables = data.suppliers.reduce((s, c) => s + partyBalance(data, c.id, false), 0);
   const payablesOverdue = openPinv.filter((i) => parseISO(i.dueDate) < today).reduce((s, i) => s + docTotal(i) - i.paidAmount, 0);
 
   const active = data.books.filter((b) => b.status === "Active");
@@ -83,13 +84,13 @@ export function computeDashboard(data: AppData, r: Range) {
 /** Weekly series computed from transactions; monthly series uses seeded history. */
 export function trendSeries(data: AppData, mode: "monthly" | "weekly") {
   if (mode === "monthly") {
-    return salesTrend.map((s, i) => ({
-      label: s.month,
-      sales: s.value,
-      purchases: purchasesVsExpenses[i]?.purchases ?? 0,
-      expenses: purchasesVsExpenses[i]?.expenses ?? 0,
-      profit: profitTrend[i]?.value ?? 0,
-    }));
+    return Array.from({ length: 9 }, (_, i) => {
+      const start = parseISO(`2025-${String(i + 1).padStart(2, "0")}-01`);
+      const end = new Date(2025, i + 1, 0);
+      const r = { from: start, to: end };
+      const sales = salesIn(data, r); const expenses = expensesIn(data, r);
+      return { label: format(start, "MMM"), sales, purchases: purchasesIn(data, r), expenses, profit: sales - cogsIn(data, r) - expenses };
+    });
   }
   return Array.from({ length: 8 }, (_, k) => {
     const start = startOfWeek(subWeeks(today, 7 - k), { weekStartsOn: 1 });
