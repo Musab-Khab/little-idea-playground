@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Bell, Menu, Search, ChevronDown } from "lucide-react";
 import { useAppStore, type RangeKey } from "@/store/appStore";
 import { usePermissions } from "@/lib/permissions";
-import { financialYears } from "@/data/mockData";
+
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -20,6 +20,7 @@ const ranges: { key: RangeKey; label: string }[] = [
 
 export function Topbar({ onMenu }: { onMenu: () => void }) {
   const { range, setRange, fyId, setFy, setRole, customFrom, customTo, setCustom } = useAppStore();
+  const financialYears = useAppStore((s) => s.data.financialYears);
   const roles = useAppStore((s) => s.data.roles);
   const { role } = usePermissions();
   const { authUser } = useRouteContext({ from: "/_authenticated" });

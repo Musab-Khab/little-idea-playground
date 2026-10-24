@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { moduleService } from "@/services/moduleService";
 import { formatDate, formatPKR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -184,6 +185,7 @@ function OrderDialog({ order, canEdit, user, onClose }: { order: SalesOrder; can
         {stockShort && <p className="text-xs font-semibold text-destructive">Not enough stock for the delivery entered.</p>}
         <DialogFooter>
           <Button variant="outline" onClick={() => window.print()}>Print</Button>
+          {canEdit && order.status !== "Cancelled" && <Button variant="outline" onClick={async () => { try { const no = await moduleService.convertOrder(order.id, user); toast.success(`${no} created in Sales Invoices`); onClose(); } catch (e) { toast.error(e instanceof Error ? e.message : "Unable to convert order"); } }}>Convert to Invoice</Button>}
           {editable && (
             <Button disabled={stockShort} onClick={async () => { await salesOrderService.deliver(order.id, deliver, user); toast.success("Delivery recorded"); onClose(); }}>
               Save delivery

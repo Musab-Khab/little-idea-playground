@@ -2,11 +2,12 @@ import { useEffect, useState, type ReactNode } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { Topbar } from "./Topbar";
 import { useAppStore } from "@/store/appStore";
-import { financialYears } from "@/data/mockData";
+
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const fyId = useAppStore((s) => s.fyId);
+  const financialYears = useAppStore((s) => s.data.financialYears);
   const closed = financialYears.find((f) => f.id === fyId)?.status === "Closed";
 
   useEffect(() => {
