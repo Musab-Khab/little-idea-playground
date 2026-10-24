@@ -1,7 +1,9 @@
+import { useRouteContext, useNavigate, useRouter } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import { Bell, Menu, Search, ChevronDown } from "lucide-react";
 import { useAppStore, type RangeKey } from "@/store/appStore";
 import { usePermissions } from "@/lib/permissions";
-import { financialYears } from "@/data/mockData";
+
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -18,8 +20,14 @@ const ranges: { key: RangeKey; label: string }[] = [
 
 export function Topbar({ onMenu }: { onMenu: () => void }) {
   const { range, setRange, fyId, setFy, setRole, customFrom, customTo, setCustom } = useAppStore();
+  const financialYears = useAppStore((s) => s.data.financialYears);
   const roles = useAppStore((s) => s.data.roles);
-  const { role, user } = usePermissions();
+  const { role } = usePermissions();
+  const { authUser } = useRouteContext({ from: "/_authenticated" });
+  const { queryClient } = useRouteContext({ from: "__root__" });
+  const navigate = useNavigate();
+  const router = useRouter();
+  const user = { name: authUser.email?.split("@")[0] ?? "Account" };
 
   return (
     <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-border bg-card/90 px-4 py-3 backdrop-blur lg:px-6">
@@ -65,7 +73,10 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
             <ChevronDown className="size-4 text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Switch role (demo)</DropdownMenuLabel>
+            <DropdownMenuLabel className="truncate">{authUser.email}</DropdownMenuLabel>
+            <DropdownMenuItem onClick={async () => { await queryClient.cancelQueries(); queryClient.clear(); await supabase.auth.signOut(); await navigate({to:"/auth",replace:true}); void router.invalidate(); }}>Sign out</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Switch role (sample data)</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {roles.map((r) => (
               <DropdownMenuItem key={r.id} onClick={() => setRole(r.id)} className={r.id === role.id ? "font-semibold text-primary" : ""}>
