@@ -27,7 +27,7 @@ export function AuthScreen() {
         const {error} = await supabase.auth.signInWithPassword({email,password});
         if(error) throw error; await navigate({to:'/'});
       }
-    } catch(e) {setMessage(e instanceof Error?e.message:'Unable to sign in. Please try again.');} finally {setBusy(false);}
+    } catch(e) {const m=e instanceof Error?e.message:'';setMessage(/failed to fetch|network/i.test(m)?'Cannot reach the sign-in service. Check your internet connection and try again.':m||'Unable to sign in. Please try again.');} finally {setBusy(false);}
   }
   async function oneClick() {
     setBusy(true);setMessage('');
