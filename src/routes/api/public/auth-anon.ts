@@ -7,10 +7,10 @@ export const Route = createFileRoute('/api/public/auth-anon')({
     handlers: {
       POST: async () => {
         try {
-          const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/signup`, {
+          const res = await fetch(`${process.env['SUPABASE_URL']}/auth/v1/signup`, {
             method: 'POST',
             headers: {
-              apikey: process.env.SUPABASE_PUBLISHABLE_KEY!,
+              apikey: process.env['SUPABASE_PUBLISHABLE_KEY']!,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ data: {}, gotrue_meta_security: {} }),
