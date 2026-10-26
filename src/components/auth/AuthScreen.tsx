@@ -31,9 +31,15 @@ export function AuthScreen() {
   }
   async function oneClick() {
     setBusy(true);setMessage('');
-    const {error} = await supabase.auth.signInAnonymously();
-    if(error) {setMessage(error.message);setBusy(false);return;}
-    await navigate({to:'/'});
+    try {
+      const res = await fetch('/api/public/auth-anon',{method:'POST'});
+      const json = await res.json();
+      if(!res.ok||!json.access_token) throw new Error(json.error||json.msg||'Sign-in service unavailable. Please try again.');
+      const {error} = await supabase.auth.setSession({access_token:json.access_token,refresh_token:json.refresh_token});
+      if(error) throw error;
+      await navigate({to:'/'});
+    } catch(e) {const m=e instanceof Error?e.message:'';setMessage(/failed to fetch|network/i.test(m)?'Cannot reach the sign-in service. Check your internet connection and try again.':m||'Unable to sign in. Please try again.');}
+    setBusy(false);
   }
   async function social(provider:'google'|'lovable') {
     setBusy(true);setMessage('');
