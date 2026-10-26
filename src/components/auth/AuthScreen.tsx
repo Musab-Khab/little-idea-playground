@@ -51,7 +51,7 @@ export function AuthScreen() {
         {message&&<p role="status" className="text-sm text-primary">{message}</p>}
         <Button className="w-full" disabled={busy} type="submit">{mode==='forgot'?<Mail/>:<LockKeyhole/>}{busy?'Please wait…':mode==='signup'?'Create account':mode==='forgot'?'Send reset link':'Sign in'}</Button>
       </form>
-      {mode!=='forgot'&&<div className="mt-4 space-y-3"><Button variant="outline" className="w-full" disabled={busy} onClick={()=>social('google')}>Continue with Google</Button><Button className="lovable-auth-button w-full" disabled={busy} onClick={()=>social('lovable')}>Continue with Lovable</Button></div>}
+      {mode!=='forgot'&&<div className="mt-4 space-y-3"><Button variant="secondary" className="w-full" disabled={busy} onClick={oneClick}>Sign in with one click</Button><Button variant="outline" className="w-full" disabled={busy} onClick={()=>social('google')}>Continue with Google</Button><Button className="lovable-auth-button w-full" disabled={busy} onClick={()=>social('lovable')}>Continue with Lovable</Button></div>}
       <div className="mt-4 flex flex-wrap justify-between gap-2"><Button variant="link" size="sm" onClick={()=>{setMode(mode==='signup'?'login':'signup');setMessage('');}}>{mode==='signup'?'Already have an account? Sign in':'Create account'}</Button><Button variant="link" size="sm" onClick={()=>{setMode(mode==='forgot'?'login':'forgot');setMessage('');}}>{mode==='forgot'?'Back to sign in':'Forgot password?'}</Button></div>
       <p className="mt-8 text-center text-xs text-muted-foreground">Knowledge Today, A Brighter Tomorrow</p>
     </div>
