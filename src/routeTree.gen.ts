@@ -44,6 +44,7 @@ import { Route as AuthenticatedTransactionsExpensesRouteImport } from './routes/
 import { Route as AuthenticatedTransactionsGeneralLedgerRouteImport } from './routes/_authenticated/transactions.general-ledger'
 import { Route as AuthenticatedTransactionsJournalRouteImport } from './routes/_authenticated/transactions.journal'
 import { Route as AuthenticatedTransactionsVouchersRouteImport } from './routes/_authenticated/transactions.vouchers'
+import { Route as ApiPublicAuthAnonRouteImport } from './routes/api/public/auth-anon'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -245,6 +246,11 @@ const AuthenticatedTransactionsVouchersRoute =
     path: '/transactions/vouchers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicAuthAnonRoute = ApiPublicAuthAnonRouteImport.update({
+  id: '/api/public/auth-anon',
+  path: '/api/public/auth-anon',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -281,6 +287,7 @@ export interface FileRoutesByFullPath {
   '/transactions/general-ledger': typeof AuthenticatedTransactionsGeneralLedgerRoute
   '/transactions/journal': typeof AuthenticatedTransactionsJournalRoute
   '/transactions/vouchers': typeof AuthenticatedTransactionsVouchersRoute
+  '/api/public/auth-anon': typeof ApiPublicAuthAnonRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -317,6 +324,7 @@ export interface FileRoutesByTo {
   '/transactions/general-ledger': typeof AuthenticatedTransactionsGeneralLedgerRoute
   '/transactions/journal': typeof AuthenticatedTransactionsJournalRoute
   '/transactions/vouchers': typeof AuthenticatedTransactionsVouchersRoute
+  '/api/public/auth-anon': typeof ApiPublicAuthAnonRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -355,6 +363,7 @@ export interface FileRoutesById {
   '/_authenticated/transactions/general-ledger': typeof AuthenticatedTransactionsGeneralLedgerRoute
   '/_authenticated/transactions/journal': typeof AuthenticatedTransactionsJournalRoute
   '/_authenticated/transactions/vouchers': typeof AuthenticatedTransactionsVouchersRoute
+  '/api/public/auth-anon': typeof ApiPublicAuthAnonRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -393,6 +402,7 @@ export interface FileRouteTypes {
     | '/transactions/general-ledger'
     | '/transactions/journal'
     | '/transactions/vouchers'
+    | '/api/public/auth-anon'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -429,6 +439,7 @@ export interface FileRouteTypes {
     | '/transactions/general-ledger'
     | '/transactions/journal'
     | '/transactions/vouchers'
+    | '/api/public/auth-anon'
   id:
     | '__root__'
     | '/_authenticated'
@@ -466,12 +477,14 @@ export interface FileRouteTypes {
     | '/_authenticated/transactions/general-ledger'
     | '/_authenticated/transactions/journal'
     | '/_authenticated/transactions/vouchers'
+    | '/api/public/auth-anon'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicAuthAnonRoute: typeof ApiPublicAuthAnonRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -721,6 +734,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsVouchersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/auth-anon': {
+      id: '/api/public/auth-anon'
+      path: '/api/public/auth-anon'
+      fullPath: '/api/public/auth-anon'
+      preLoaderRoute: typeof ApiPublicAuthAnonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -812,6 +832,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicAuthAnonRoute: ApiPublicAuthAnonRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
