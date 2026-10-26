@@ -29,6 +29,12 @@ export function AuthScreen() {
       }
     } catch(e) {setMessage(e instanceof Error?e.message:'Unable to sign in. Please try again.');} finally {setBusy(false);}
   }
+  async function oneClick() {
+    setBusy(true);setMessage('');
+    const {error} = await supabase.auth.signInAnonymously();
+    if(error) {setMessage(error.message);setBusy(false);return;}
+    await navigate({to:'/'});
+  }
   async function social(provider:'google'|'lovable') {
     setBusy(true);setMessage('');
     const result = await lovable.auth.signInWithOAuth(provider,{redirect_uri:window.location.origin+'/auth'});
