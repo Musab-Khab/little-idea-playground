@@ -1,4 +1,25 @@
-import {createFileRoute} from '@tanstack/react-router';
-import {ModulePage} from '@/components/modules/ModulePage';
-import {moduleHead} from '@/lib/moduleConfig';
-export const Route=createFileRoute('/_authenticated/inventory/samples')({head:()=>moduleHead('Samples'),component:()=> <ModulePage path="/inventory/samples"/>});
+import { createFileRoute } from "@tanstack/react-router";
+import { DocumentListPage } from "@/components/documents/DocumentListPage";
+
+export const Route = createFileRoute("/_authenticated/inventory/samples")({
+  head: () => ({ meta: [{ title: "Samples – MFAHH" }] }),
+  component: () => (
+    <DocumentListPage
+      title="Samples"
+      section="Inventory"
+      types={["SMP", "SMR"]}
+      create={["SMP", "SMR"]}
+      columns={[
+        "docNo",
+        "type",
+        "date",
+        "party",
+        "issuedTo",
+        "purpose",
+        "qty",
+        "total",
+        "progress",
+      ]}
+    />
+  ),
+});

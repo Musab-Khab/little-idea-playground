@@ -1,0 +1,11 @@
+# Automatic HTTPS (Let's Encrypt) in front of the app. HTTP is redirected to HTTPS.
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:3000
+	header {
+		-Server
+	}
+	# Optional: allow only the office's public IP. Uncomment and set the address.
+	# @outside not remote_ip 203.0.113.10
+	# respond @outside "Access denied" 403
+}

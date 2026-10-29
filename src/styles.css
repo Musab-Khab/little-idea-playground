@@ -153,3 +153,12 @@
   border-radius: 1rem;
   box-shadow: var(--shadow-card);
 }
+
+/* Printing: hide app chrome and controls, keep content full width. */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+  main { padding: 0 !important; }
+  .card-surface { box-shadow: none !important; border: none !important; }
+  @page { size: A4; margin: 12mm; }
+}

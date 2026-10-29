@@ -1,0 +1,11 @@
+node_modules
+.output
+.env
+.env.*
+!.env.example
+backups
+storage
+e2e-shots
+.e2e-secrets.json
+.git
+.qodo

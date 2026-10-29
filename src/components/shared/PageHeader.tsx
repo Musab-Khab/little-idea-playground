@@ -1,7 +1,15 @@
 import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 
-export function PageHeader({ title, crumbs = [], actions }: { title: string; crumbs?: string[]; actions?: ReactNode }) {
+export function PageHeader({
+  title,
+  crumbs = [],
+  actions,
+}: {
+  title: string;
+  crumbs?: string[];
+  actions?: ReactNode;
+}) {
   return (
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div>

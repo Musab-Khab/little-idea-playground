@@ -1,4 +1,14 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
-import { supabase } from '@/integrations/supabase/client';
-import { AuthScreen } from '@/components/auth/AuthScreen';
-export const Route=createFileRoute('/auth')({ssr:false,beforeLoad:async()=>{const {data}=await supabase.auth.getUser();if(data.user)throw redirect({to:'/'});},head:()=>({meta:[{title:'Sign in – MFAHH'},{name:'description',content:'Sign in to MFAHH for Turnkey Publishers.'},{property:'og:title',content:'Sign in – MFAHH'},{property:'og:description',content:'Sign in to MFAHH for Turnkey Publishers.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:AuthScreen});
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { AuthScreen } from "@/components/auth/AuthScreen";
+import { getAuthState } from "@/server/functions/auth";
+
+export const Route = createFileRoute("/auth")({
+  ssr: false,
+  beforeLoad: async () => {
+    const state = await getAuthState();
+    if (state.stage === "signedIn") throw redirect({ to: "/" });
+    return { authState: state };
+  },
+  head: () => ({ meta: [{ title: "Sign in – MFAHH" }, { name: "robots", content: "noindex" }] }),
+  component: AuthScreen,
+});

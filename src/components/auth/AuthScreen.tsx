@@ -1,65 +1,307 @@
-import { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { BookOpen, LockKeyhole, Mail } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable';
-import '@lovable.dev/cloud-auth-js/styles.css';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState, type FormEvent, type ReactNode } from "react";
+import { useRouteContext, useRouter } from "@tanstack/react-router";
+import { BookOpen, KeyRound, LockKeyhole, ShieldCheck, Smartphone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  beginMfaSetup,
+  changePassword,
+  confirmMfaSetup,
+  login,
+  logout,
+  verifyMfa,
+} from "@/server/functions/auth";
+import { errorText } from "@/lib/api";
 
 export function AuthScreen() {
-  const navigate = useNavigate();
-  const [mode, setMode] = useState<'login'|'signup'|'forgot'>('login');
-  const [email,setEmail] = useState(''); const [password,setPassword] = useState('');
-  const [busy,setBusy] = useState(false); const [message,setMessage] = useState('');
-  async function submit(e: React.FormEvent) {
-    e.preventDefault(); setBusy(true); setMessage('');
+  const { authState } = useRouteContext({ from: "/auth" });
+  const router = useRouter();
+  // Re-runs the route guard, which moves to the next stage or into the app.
+  const refresh = () => router.invalidate();
+
+  return (
+    <main className="grid min-h-screen place-items-center bg-background p-6">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-card">
+        <div className="mb-8 flex items-center gap-3">
+          <span className="grid size-12 place-items-center rounded-lg bg-primary text-primary-foreground">
+            <BookOpen />
+          </span>
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground">TURNKEY PUBLISHERS</p>
+            <h1 className="text-3xl font-extrabold text-navy">MFAHH</h1>
+          </div>
+        </div>
+        {authState.stage === "signedOut" && <LoginForm onDone={refresh} />}
+        {authState.stage === "mfa" && <MfaForm onDone={refresh} />}
+        {authState.stage === "mfaSetup" && <MfaSetup onDone={refresh} />}
+        {authState.stage === "changePassword" && <ChangePasswordForm onDone={refresh} />}
+        {authState.stage !== "signedOut" && (
+          <Button
+            variant="link"
+            size="sm"
+            className="mt-4 px-0"
+            onClick={async () => {
+              await logout();
+              await refresh();
+            }}
+          >
+            Sign in as a different user
+          </Button>
+        )}
+        <p className="mt-8 text-center text-xs text-muted-foreground">
+          Knowledge Today, A Brighter Tomorrow
+        </p>
+      </div>
+    </main>
+  );
+}
+
+function useSubmit(action: () => Promise<unknown>, onDone: () => Promise<void>) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
     try {
-      if(mode === 'forgot') {
-        const {error} = await supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/reset-password'});
-        if(error) throw error; setMessage('Check your email for a password reset link.');
-      } else if(mode === 'signup') {
-        const {data,error} = await supabase.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+'/auth'}});
-        if(error) throw error;
-        if(data.session) await navigate({to:'/'}); else setMessage('Check your email to confirm your account before signing in.');
-      } else {
-        const {error} = await supabase.auth.signInWithPassword({email,password});
-        if(error) throw error; await navigate({to:'/'});
-      }
-    } catch(e) {const m=e instanceof Error?e.message:'';setMessage(/failed to fetch|network/i.test(m)?'Cannot reach the sign-in service. Check your internet connection and try again.':m||'Unable to sign in. Please try again.');} finally {setBusy(false);}
-  }
-  async function oneClick() {
-    setBusy(true);setMessage('');
-    try {
-      const res = await fetch('/api/public/auth-anon',{method:'POST'});
-      const json = await res.json();
-      if(!res.ok||!json.access_token) throw new Error(json.error||json.msg||'Sign-in service unavailable. Please try again.');
-      const {error} = await supabase.auth.setSession({access_token:json.access_token,refresh_token:json.refresh_token});
-      if(error) throw error;
-      await navigate({to:'/'});
-    } catch(e) {const m=e instanceof Error?e.message:'';setMessage(/failed to fetch|network/i.test(m)?'Cannot reach the sign-in service. Check your internet connection and try again.':m||'Unable to sign in. Please try again.');}
-    setBusy(false);
-  }
-  async function social(provider:'google'|'lovable') {
-    setBusy(true);setMessage('');
-    const result = await lovable.auth.signInWithOAuth(provider,{redirect_uri:window.location.origin+'/auth'});
-    if(result.error) {setMessage(result.error.message);setBusy(false);return;}
-    if(!result.redirected) await navigate({to:'/'}); setBusy(false);
-  }
-  return <main className="grid min-h-screen place-items-center bg-background p-6">
-    <div className="w-full max-w-md">
-      <div className="mb-8 flex items-center gap-3"><span className="grid size-12 place-items-center rounded-lg bg-primary text-primary-foreground"><BookOpen /></span><div><p className="text-xs font-semibold text-muted-foreground">TURNKEY PUBLISHERS</p><h1 className="text-3xl font-extrabold text-navy">MFAHH</h1></div></div>
-      <h2 className="mb-6 text-xl font-bold">{mode==='login'?'Sign in':mode==='signup'?'Create an account':'Reset your password'}</h2>
-      <form onSubmit={submit} className="space-y-4">
-        <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} /></div>
-        {mode!=='forgot'&&<div className="space-y-2"><Label htmlFor="password">Password</Label><Input id="password" type="password" required minLength={8} autoComplete={mode==='signup'?'new-password':'current-password'} value={password} onChange={e=>setPassword(e.target.value)} /></div>}
-        {message&&<p role="status" className="text-sm text-primary">{message}</p>}
-        <Button className="w-full" disabled={busy} type="submit">{mode==='forgot'?<Mail/>:<LockKeyhole/>}{busy?'Please wait…':mode==='signup'?'Create account':mode==='forgot'?'Send reset link':'Sign in'}</Button>
+      await action();
+      await onDone();
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { busy, error, submit };
+}
+
+function Shell({
+  title,
+  icon,
+  children,
+  note,
+}: {
+  title: string;
+  icon: ReactNode;
+  children: ReactNode;
+  note?: string;
+}) {
+  return (
+    <>
+      <h2 className="mb-1 flex items-center gap-2 text-xl font-bold">
+        {icon}
+        {title}
+      </h2>
+      {note && <p className="mb-5 text-sm text-muted-foreground">{note}</p>}
+      {children}
+    </>
+  );
+}
+
+function LoginForm({ onDone }: { onDone: () => Promise<void> }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { busy, error, submit } = useSubmit(() => login({ data: { email, password } }), onDone);
+  return (
+    <Shell title="Sign in" icon={<LockKeyhole className="size-5" />}>
+      <form onSubmit={submit} className="mt-5 space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="username"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        <Button className="w-full" disabled={busy} type="submit">
+          {busy ? "Signing in…" : "Sign in"}
+        </Button>
+        <p className="text-xs text-muted-foreground">
+          Forgot your password? Ask your administrator to reset it. Accounts lock for 15 minutes
+          after 5 failed attempts.
+        </p>
       </form>
-      {mode!=='forgot'&&<div className="mt-4 space-y-3"><Button variant="secondary" className="w-full" disabled={busy} onClick={oneClick}>Sign in with one click</Button><Button variant="outline" className="w-full" disabled={busy} onClick={()=>social('google')}>Continue with Google</Button><Button className="lovable-auth-button w-full" disabled={busy} onClick={()=>social('lovable')}>Continue with Lovable</Button></div>}
-      <div className="mt-4 flex flex-wrap justify-between gap-2"><Button variant="link" size="sm" onClick={()=>{setMode(mode==='signup'?'login':'signup');setMessage('');}}>{mode==='signup'?'Already have an account? Sign in':'Create account'}</Button><Button variant="link" size="sm" onClick={()=>{setMode(mode==='forgot'?'login':'forgot');setMessage('');}}>{mode==='forgot'?'Back to sign in':'Forgot password?'}</Button></div>
-      <p className="mt-8 text-center text-xs text-muted-foreground">Knowledge Today, A Brighter Tomorrow</p>
-    </div>
-  </main>;
+    </Shell>
+  );
+}
+
+function CodeInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <Input
+      inputMode="numeric"
+      autoComplete="one-time-code"
+      pattern="\d{6}"
+      maxLength={6}
+      required
+      autoFocus
+      className="text-center text-2xl tracking-[0.5em]"
+      value={value}
+      onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
+      aria-label="6-digit code"
+    />
+  );
+}
+
+function MfaForm({ onDone }: { onDone: () => Promise<void> }) {
+  const [code, setCode] = useState("");
+  const { busy, error, submit } = useSubmit(() => verifyMfa({ data: { code } }), onDone);
+  return (
+    <Shell
+      title="Two-factor authentication"
+      icon={<Smartphone className="size-5" />}
+      note="Enter the 6-digit code from your authenticator app."
+    >
+      <form onSubmit={submit} className="space-y-4">
+        <CodeInput value={code} onChange={setCode} />
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        <Button className="w-full" disabled={busy || code.length !== 6} type="submit">
+          Verify
+        </Button>
+      </form>
+    </Shell>
+  );
+}
+
+function MfaSetup({ onDone }: { onDone: () => Promise<void> }) {
+  const [setup, setSetup] = useState<{ qr: string; secret: string } | null>(null);
+  const [code, setCode] = useState("");
+  const [startError, setStartError] = useState("");
+  const { busy, error, submit } = useSubmit(() => confirmMfaSetup({ data: { code } }), onDone);
+  return (
+    <Shell
+      title="Set up two-factor authentication"
+      icon={<ShieldCheck className="size-5" />}
+      note="Your role handles financial data, so a second factor is required. Use Google Authenticator, Microsoft Authenticator or a similar app."
+    >
+      {!setup ? (
+        <div className="space-y-3">
+          <Button
+            className="w-full"
+            onClick={async () => {
+              try {
+                setSetup(await beginMfaSetup());
+              } catch (e) {
+                setStartError(errorText(e));
+              }
+            }}
+          >
+            Show QR code
+          </Button>
+          {startError && (
+            <p role="alert" className="text-sm text-destructive">
+              {startError}
+            </p>
+          )}
+        </div>
+      ) : (
+        <form onSubmit={submit} className="space-y-4">
+          <img
+            src={setup.qr}
+            alt="Scan this QR code with your authenticator app"
+            className="mx-auto size-48 rounded-lg border"
+          />
+          <p className="break-all text-center text-xs text-muted-foreground">
+            Can't scan? Enter this key: <span className="font-mono">{setup.secret}</span>
+          </p>
+          <Label>Code shown in the app</Label>
+          <CodeInput value={code} onChange={setCode} />
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
+          <Button className="w-full" disabled={busy || code.length !== 6} type="submit">
+            Enable and continue
+          </Button>
+        </form>
+      )}
+    </Shell>
+  );
+}
+
+function ChangePasswordForm({ onDone }: { onDone: () => Promise<void> }) {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const { busy, error, submit } = useSubmit(async () => {
+    if (next !== confirm) throw new Error("The new passwords do not match.");
+    await changePassword({ data: { current, next } });
+  }, onDone);
+  return (
+    <Shell
+      title="Choose a new password"
+      icon={<KeyRound className="size-5" />}
+      note="At least 10 characters. Avoid common words and your name."
+    >
+      <form onSubmit={submit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="cur">Current (temporary) password</Label>
+          <Input
+            id="cur"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={current}
+            onChange={(e) => setCurrent(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="new">New password</Label>
+          <Input
+            id="new"
+            type="password"
+            autoComplete="new-password"
+            minLength={10}
+            required
+            value={next}
+            onChange={(e) => setNext(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="conf">Confirm new password</Label>
+          <Input
+            id="conf"
+            type="password"
+            autoComplete="new-password"
+            minLength={10}
+            required
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
+        </div>
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        <Button className="w-full" disabled={busy} type="submit">
+          Save password
+        </Button>
+      </form>
+    </Shell>
+  );
 }

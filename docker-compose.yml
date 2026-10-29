@@ -1,0 +1,76 @@
+# Production stack: Postgres (internal only) + app + nightly backups + Caddy (automatic HTTPS).
+# Configure values in .env.production (see DEPLOY.md), then: docker compose --env-file .env.production up -d
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PG_SUPERUSER_PASSWORD:?set PG_SUPERUSER_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # No published ports: the database is reachable only from the app containers.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 20
+
+  setup:
+    build: .
+    restart: "no"
+    depends_on:
+      db: { condition: service_healthy }
+    environment: &appenv
+      PG_HOST: db
+      PG_PORT: "5432"
+      PG_SUPERUSER: postgres
+      PG_SUPERUSER_PASSWORD: ${PG_SUPERUSER_PASSWORD}
+      DB_OWNER_PASSWORD: ${DB_OWNER_PASSWORD:?set DB_OWNER_PASSWORD}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?set DB_APP_PASSWORD}
+      DATABASE_OWNER_URL: postgres://mfahh_owner:${DB_OWNER_PASSWORD}@db:5432/mfahh
+      DATABASE_URL: postgres://mfahh_app:${DB_APP_PASSWORD}@db:5432/mfahh
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET}
+      BACKUP_PASSPHRASE: ${BACKUP_PASSPHRASE:?set BACKUP_PASSPHRASE}
+      APP_URL: https://${DOMAIN:?set DOMAIN}
+      TRUST_PROXY: "true"
+      STORAGE_DIR: /app/storage
+      BACKUP_DIR: /app/backups
+    command: ["npx", "tsx", "scripts/db-setup.ts", "--no-write"]
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      setup: { condition: service_completed_successfully }
+    environment: *appenv
+    volumes:
+      - ./storage:/app/storage
+      - ./backups:/app/backups
+
+  backup:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      setup: { condition: service_completed_successfully }
+    environment: *appenv
+    volumes:
+      - ./backups:/app/backups
+    # Daily encrypted backup with 14 daily + 12 monthly retention.
+    command: ["sh", "-c", "while true; do npx tsx scripts/backup.ts; sleep 86400; done"]
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [app]
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

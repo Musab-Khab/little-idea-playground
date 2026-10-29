@@ -22,7 +22,16 @@ interface Props {
   onClick?: () => void;
 }
 
-export function KpiCard({ title, value, sub, subTone = "muted", icon: Icon, tint, trend, onClick }: Props) {
+export function KpiCard({
+  title,
+  value,
+  sub,
+  subTone = "muted",
+  icon: Icon,
+  tint,
+  trend,
+  onClick,
+}: Props) {
   const t = tints[tint];
   const Tag = onClick ? "button" : "div";
   return (
@@ -34,7 +43,12 @@ export function KpiCard({ title, value, sub, subTone = "muted", icon: Icon, tint
         onClick && "cursor-pointer hover:-translate-y-0.5 hover:shadow-lg",
       )}
     >
-      <span className={cn("grid size-10 shrink-0 place-items-center rounded-full text-primary-foreground", t.fg)}>
+      <span
+        className={cn(
+          "grid size-10 shrink-0 place-items-center rounded-full text-primary-foreground",
+          t.fg,
+        )}
+      >
         <Icon className="size-5" />
       </span>
       <div className="min-w-0 flex-1">
@@ -44,7 +58,16 @@ export function KpiCard({ title, value, sub, subTone = "muted", icon: Icon, tint
           {trend === "up" && <TrendingUp className="size-4 text-success" />}
           {trend === "down" && <TrendingDown className="size-4 text-destructive" />}
         </div>
-        {sub && <p className={cn("truncate text-[11px] font-medium", subTone === "danger" ? "text-destructive" : "text-muted-foreground")}>{sub}</p>}
+        {sub && (
+          <p
+            className={cn(
+              "truncate text-[11px] font-medium",
+              subTone === "danger" ? "text-destructive" : "text-muted-foreground",
+            )}
+          >
+            {sub}
+          </p>
+        )}
       </div>
     </Tag>
   );

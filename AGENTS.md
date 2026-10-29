@@ -1,22 +1,7 @@
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
-<!-- LOVABLE:END -->
-
 ## Architecture
-- Seed data lives only in `src/data/mockData.ts` (don't rename fields); it loads into the persisted Zustand store `src/store/appStore.ts` (skipHydration, rehydrated in AppLayout) so a real API can replace it later.
-- Pages read figures through `src/services/*` functions; dashboard/report numbers are computed from transaction arrays, never hard-coded.
-- Navigation is defined once in `src/lib/nav.ts`; unbuilt sections render through the splat route `src/routes/_authenticated/$.tsx` until they get their own route file.
-- Role permissions come from `roles` in the store; use `usePermissions().can()` / `canAny()` to hide or disable UI.
-
-- Cloud Auth owns real sign-in; all ERP screens live under the client-only authenticated layout so signed-out users cannot open them.
-- Sample business records and role switching remain browser-local demo data, separate from Cloud Auth; never treat demo roles as production authorization.
-- Repeated record screens use moduleConfig, ModulePage and moduleService; specialized reports/settings views use SpecialPage so transactions share validation and posting rules.
-- Financial-year, HR and configuration seeds hydrate into the same store with additive merge so existing demo edits survive schema additions.
-- Export helpers dynamically load Excel/PDF libraries from click handlers to keep browser-only work outside SSR.
+- Server: TanStack Start server functions in `src/server/functions/*`; every handler is wrapped in `safe()` and checks permissions with `requireUser()` / `assertPerm()`. The UI's `useSession().can()` only hides controls.
+- Data: PostgreSQL via Drizzle (`src/server/db/schema.ts`). Schema changes: edit schema.ts, `npm run db:generate`, then `npm run db:migrate`. Integrity rules (append-only ledgers, document guards, audit hash chain, app-role privileges) live in `migrations/0001_integrity.sql`.
+- Transactions are `documents` + `document_lines`. Add document behaviour in `src/server/posting/` (prepare.ts validates, rules.ts posts and reverses), and declare types in `src/shared/documents.ts`. Never write to `gl_entries`, `stock_ledger` or `products.stock_qty` outside the posting engine.
+- Money is numeric(18,2), returned as JS numbers; round with `round2`. Reports compute from ledgers, never from stored totals.
+- Server-only modules (`src/server/**`) must not be imported by browser code except server-function files; shared constants go in `src/shared/`.
+- Tests: `npm test` (engine and permissions against mfahh_test) and `tests/e2e` (real Chrome via playwright-core).

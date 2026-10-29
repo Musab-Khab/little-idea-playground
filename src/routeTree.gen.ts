@@ -11,12 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedSplatRouteImport } from './routes/_authenticated/$'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedSuppliersRouteImport } from './routes/_authenticated/suppliers'
+import { Route as PrintIdRouteImport } from './routes/print.$id'
+import { Route as PrintStatementRouteImport } from './routes/print.statement'
 import { Route as AuthenticatedInventoryAdjustmentsRouteImport } from './routes/_authenticated/inventory.adjustments'
 import { Route as AuthenticatedInventoryBooksRouteImport } from './routes/_authenticated/inventory.books'
 import { Route as AuthenticatedInventoryDamagedRouteImport } from './routes/_authenticated/inventory.damaged'
@@ -31,6 +32,8 @@ import { Route as AuthenticatedSalesReceiptsRouteImport } from './routes/_authen
 import { Route as AuthenticatedSalesReturnsRouteImport } from './routes/_authenticated/sales.returns'
 import { Route as AuthenticatedSettingsAuditLogRouteImport } from './routes/_authenticated/settings.audit-log'
 import { Route as AuthenticatedSettingsBackupAndRestoreRouteImport } from './routes/_authenticated/settings.backup-and-restore'
+import { Route as AuthenticatedSettingsCompanyRouteImport } from './routes/_authenticated/settings.company'
+import { Route as AuthenticatedSettingsDataImportRouteImport } from './routes/_authenticated/settings.data-import'
 import { Route as AuthenticatedSettingsFinancialYearsRouteImport } from './routes/_authenticated/settings.financial-years'
 import { Route as AuthenticatedSettingsUsersAndRolesRouteImport } from './routes/_authenticated/settings.users-and-roles'
 import { Route as AuthenticatedStaffAttendanceAndLeaveRouteImport } from './routes/_authenticated/staff.attendance-and-leave'
@@ -40,11 +43,13 @@ import { Route as AuthenticatedStaffStaffRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTransactionsBankAccountsRouteImport } from './routes/_authenticated/transactions.bank-accounts'
 import { Route as AuthenticatedTransactionsCashBookRouteImport } from './routes/_authenticated/transactions.cash-book'
 import { Route as AuthenticatedTransactionsChartOfAccountsRouteImport } from './routes/_authenticated/transactions.chart-of-accounts'
+import { Route as AuthenticatedTransactionsExpenseHeadsRouteImport } from './routes/_authenticated/transactions.expense-heads'
 import { Route as AuthenticatedTransactionsExpensesRouteImport } from './routes/_authenticated/transactions.expenses'
 import { Route as AuthenticatedTransactionsGeneralLedgerRouteImport } from './routes/_authenticated/transactions.general-ledger'
 import { Route as AuthenticatedTransactionsJournalRouteImport } from './routes/_authenticated/transactions.journal'
-import { Route as AuthenticatedTransactionsVouchersRouteImport } from './routes/_authenticated/transactions.vouchers'
-import { Route as ApiPublicAuthAnonRouteImport } from './routes/api/public/auth-anon'
+import { Route as AuthenticatedTransactionsOpeningBalancesRouteImport } from './routes/_authenticated/transactions.opening-balances'
+import { Route as ApiFilesBackupNameRouteImport } from './routes/api/files/backup.$name'
+import { Route as ApiFilesStaffDocumentIdRouteImport } from './routes/api/files/staff-document.$id'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -55,19 +60,14 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedSplatRoute = AuthenticatedSplatRouteImport.update({
-  id: '/$',
-  path: '/$',
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCustomersRoute = AuthenticatedCustomersRouteImport.update({
@@ -84,6 +84,16 @@ const AuthenticatedSuppliersRoute = AuthenticatedSuppliersRouteImport.update({
   id: '/suppliers',
   path: '/suppliers',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const PrintIdRoute = PrintIdRouteImport.update({
+  id: '/print/$id',
+  path: '/print/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrintStatementRoute = PrintStatementRouteImport.update({
+  id: '/print/statement',
+  path: '/print/statement',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedInventoryAdjustmentsRoute =
   AuthenticatedInventoryAdjustmentsRouteImport.update({
@@ -169,6 +179,18 @@ const AuthenticatedSettingsBackupAndRestoreRoute =
     path: '/settings/backup-and-restore',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsCompanyRoute =
+  AuthenticatedSettingsCompanyRouteImport.update({
+    id: '/settings/company',
+    path: '/settings/company',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsDataImportRoute =
+  AuthenticatedSettingsDataImportRouteImport.update({
+    id: '/settings/data-import',
+    path: '/settings/data-import',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsFinancialYearsRoute =
   AuthenticatedSettingsFinancialYearsRouteImport.update({
     id: '/settings/financial-years',
@@ -222,6 +244,12 @@ const AuthenticatedTransactionsChartOfAccountsRoute =
     path: '/transactions/chart-of-accounts',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTransactionsExpenseHeadsRoute =
+  AuthenticatedTransactionsExpenseHeadsRouteImport.update({
+    id: '/transactions/expense-heads',
+    path: '/transactions/expense-heads',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTransactionsExpensesRoute =
   AuthenticatedTransactionsExpensesRouteImport.update({
     id: '/transactions/expenses',
@@ -240,26 +268,32 @@ const AuthenticatedTransactionsJournalRoute =
     path: '/transactions/journal',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedTransactionsVouchersRoute =
-  AuthenticatedTransactionsVouchersRouteImport.update({
-    id: '/transactions/vouchers',
-    path: '/transactions/vouchers',
+const AuthenticatedTransactionsOpeningBalancesRoute =
+  AuthenticatedTransactionsOpeningBalancesRouteImport.update({
+    id: '/transactions/opening-balances',
+    path: '/transactions/opening-balances',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiPublicAuthAnonRoute = ApiPublicAuthAnonRouteImport.update({
-  id: '/api/public/auth-anon',
-  path: '/api/public/auth-anon',
+const ApiFilesBackupNameRoute = ApiFilesBackupNameRouteImport.update({
+  id: '/api/files/backup/$name',
+  path: '/api/files/backup/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFilesStaffDocumentIdRoute = ApiFilesStaffDocumentIdRouteImport.update({
+  id: '/api/files/staff-document/$id',
+  path: '/api/files/staff-document/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/$': typeof AuthenticatedSplatRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
+  '/print/$id': typeof PrintIdRoute
+  '/print/statement': typeof PrintStatementRoute
   '/inventory/adjustments': typeof AuthenticatedInventoryAdjustmentsRoute
   '/inventory/books': typeof AuthenticatedInventoryBooksRoute
   '/inventory/damaged': typeof AuthenticatedInventoryDamagedRoute
@@ -274,6 +308,8 @@ export interface FileRoutesByFullPath {
   '/sales/returns': typeof AuthenticatedSalesReturnsRoute
   '/settings/audit-log': typeof AuthenticatedSettingsAuditLogRoute
   '/settings/backup-and-restore': typeof AuthenticatedSettingsBackupAndRestoreRoute
+  '/settings/company': typeof AuthenticatedSettingsCompanyRoute
+  '/settings/data-import': typeof AuthenticatedSettingsDataImportRoute
   '/settings/financial-years': typeof AuthenticatedSettingsFinancialYearsRoute
   '/settings/users-and-roles': typeof AuthenticatedSettingsUsersAndRolesRoute
   '/staff/attendance-and-leave': typeof AuthenticatedStaffAttendanceAndLeaveRoute
@@ -283,19 +319,22 @@ export interface FileRoutesByFullPath {
   '/transactions/bank-accounts': typeof AuthenticatedTransactionsBankAccountsRoute
   '/transactions/cash-book': typeof AuthenticatedTransactionsCashBookRoute
   '/transactions/chart-of-accounts': typeof AuthenticatedTransactionsChartOfAccountsRoute
+  '/transactions/expense-heads': typeof AuthenticatedTransactionsExpenseHeadsRoute
   '/transactions/expenses': typeof AuthenticatedTransactionsExpensesRoute
   '/transactions/general-ledger': typeof AuthenticatedTransactionsGeneralLedgerRoute
   '/transactions/journal': typeof AuthenticatedTransactionsJournalRoute
-  '/transactions/vouchers': typeof AuthenticatedTransactionsVouchersRoute
-  '/api/public/auth-anon': typeof ApiPublicAuthAnonRoute
+  '/transactions/opening-balances': typeof AuthenticatedTransactionsOpeningBalancesRoute
+  '/api/files/backup/$name': typeof ApiFilesBackupNameRoute
+  '/api/files/staff-document/$id': typeof ApiFilesStaffDocumentIdRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/$': typeof AuthenticatedSplatRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
+  '/print/$id': typeof PrintIdRoute
+  '/print/statement': typeof PrintStatementRoute
   '/': typeof AuthenticatedIndexRoute
   '/inventory/adjustments': typeof AuthenticatedInventoryAdjustmentsRoute
   '/inventory/books': typeof AuthenticatedInventoryBooksRoute
@@ -311,6 +350,8 @@ export interface FileRoutesByTo {
   '/sales/returns': typeof AuthenticatedSalesReturnsRoute
   '/settings/audit-log': typeof AuthenticatedSettingsAuditLogRoute
   '/settings/backup-and-restore': typeof AuthenticatedSettingsBackupAndRestoreRoute
+  '/settings/company': typeof AuthenticatedSettingsCompanyRoute
+  '/settings/data-import': typeof AuthenticatedSettingsDataImportRoute
   '/settings/financial-years': typeof AuthenticatedSettingsFinancialYearsRoute
   '/settings/users-and-roles': typeof AuthenticatedSettingsUsersAndRolesRoute
   '/staff/attendance-and-leave': typeof AuthenticatedStaffAttendanceAndLeaveRoute
@@ -320,21 +361,24 @@ export interface FileRoutesByTo {
   '/transactions/bank-accounts': typeof AuthenticatedTransactionsBankAccountsRoute
   '/transactions/cash-book': typeof AuthenticatedTransactionsCashBookRoute
   '/transactions/chart-of-accounts': typeof AuthenticatedTransactionsChartOfAccountsRoute
+  '/transactions/expense-heads': typeof AuthenticatedTransactionsExpenseHeadsRoute
   '/transactions/expenses': typeof AuthenticatedTransactionsExpensesRoute
   '/transactions/general-ledger': typeof AuthenticatedTransactionsGeneralLedgerRoute
   '/transactions/journal': typeof AuthenticatedTransactionsJournalRoute
-  '/transactions/vouchers': typeof AuthenticatedTransactionsVouchersRoute
-  '/api/public/auth-anon': typeof ApiPublicAuthAnonRoute
+  '/transactions/opening-balances': typeof AuthenticatedTransactionsOpeningBalancesRoute
+  '/api/files/backup/$name': typeof ApiFilesBackupNameRoute
+  '/api/files/staff-document/$id': typeof ApiFilesStaffDocumentIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/_authenticated/$': typeof AuthenticatedSplatRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/suppliers': typeof AuthenticatedSuppliersRoute
+  '/print/$id': typeof PrintIdRoute
+  '/print/statement': typeof PrintStatementRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/inventory/adjustments': typeof AuthenticatedInventoryAdjustmentsRoute
   '/_authenticated/inventory/books': typeof AuthenticatedInventoryBooksRoute
@@ -350,6 +394,8 @@ export interface FileRoutesById {
   '/_authenticated/sales/returns': typeof AuthenticatedSalesReturnsRoute
   '/_authenticated/settings/audit-log': typeof AuthenticatedSettingsAuditLogRoute
   '/_authenticated/settings/backup-and-restore': typeof AuthenticatedSettingsBackupAndRestoreRoute
+  '/_authenticated/settings/company': typeof AuthenticatedSettingsCompanyRoute
+  '/_authenticated/settings/data-import': typeof AuthenticatedSettingsDataImportRoute
   '/_authenticated/settings/financial-years': typeof AuthenticatedSettingsFinancialYearsRoute
   '/_authenticated/settings/users-and-roles': typeof AuthenticatedSettingsUsersAndRolesRoute
   '/_authenticated/staff/attendance-and-leave': typeof AuthenticatedStaffAttendanceAndLeaveRoute
@@ -359,22 +405,25 @@ export interface FileRoutesById {
   '/_authenticated/transactions/bank-accounts': typeof AuthenticatedTransactionsBankAccountsRoute
   '/_authenticated/transactions/cash-book': typeof AuthenticatedTransactionsCashBookRoute
   '/_authenticated/transactions/chart-of-accounts': typeof AuthenticatedTransactionsChartOfAccountsRoute
+  '/_authenticated/transactions/expense-heads': typeof AuthenticatedTransactionsExpenseHeadsRoute
   '/_authenticated/transactions/expenses': typeof AuthenticatedTransactionsExpensesRoute
   '/_authenticated/transactions/general-ledger': typeof AuthenticatedTransactionsGeneralLedgerRoute
   '/_authenticated/transactions/journal': typeof AuthenticatedTransactionsJournalRoute
-  '/_authenticated/transactions/vouchers': typeof AuthenticatedTransactionsVouchersRoute
-  '/api/public/auth-anon': typeof ApiPublicAuthAnonRoute
+  '/_authenticated/transactions/opening-balances': typeof AuthenticatedTransactionsOpeningBalancesRoute
+  '/api/files/backup/$name': typeof ApiFilesBackupNameRoute
+  '/api/files/staff-document/$id': typeof ApiFilesStaffDocumentIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
-    | '/reset-password'
-    | '/$'
+    | '/account'
     | '/customers'
     | '/reports'
     | '/suppliers'
+    | '/print/$id'
+    | '/print/statement'
     | '/inventory/adjustments'
     | '/inventory/books'
     | '/inventory/damaged'
@@ -389,6 +438,8 @@ export interface FileRouteTypes {
     | '/sales/returns'
     | '/settings/audit-log'
     | '/settings/backup-and-restore'
+    | '/settings/company'
+    | '/settings/data-import'
     | '/settings/financial-years'
     | '/settings/users-and-roles'
     | '/staff/attendance-and-leave'
@@ -398,19 +449,22 @@ export interface FileRouteTypes {
     | '/transactions/bank-accounts'
     | '/transactions/cash-book'
     | '/transactions/chart-of-accounts'
+    | '/transactions/expense-heads'
     | '/transactions/expenses'
     | '/transactions/general-ledger'
     | '/transactions/journal'
-    | '/transactions/vouchers'
-    | '/api/public/auth-anon'
+    | '/transactions/opening-balances'
+    | '/api/files/backup/$name'
+    | '/api/files/staff-document/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
-    | '/reset-password'
-    | '/$'
+    | '/account'
     | '/customers'
     | '/reports'
     | '/suppliers'
+    | '/print/$id'
+    | '/print/statement'
     | '/'
     | '/inventory/adjustments'
     | '/inventory/books'
@@ -426,6 +480,8 @@ export interface FileRouteTypes {
     | '/sales/returns'
     | '/settings/audit-log'
     | '/settings/backup-and-restore'
+    | '/settings/company'
+    | '/settings/data-import'
     | '/settings/financial-years'
     | '/settings/users-and-roles'
     | '/staff/attendance-and-leave'
@@ -435,20 +491,23 @@ export interface FileRouteTypes {
     | '/transactions/bank-accounts'
     | '/transactions/cash-book'
     | '/transactions/chart-of-accounts'
+    | '/transactions/expense-heads'
     | '/transactions/expenses'
     | '/transactions/general-ledger'
     | '/transactions/journal'
-    | '/transactions/vouchers'
-    | '/api/public/auth-anon'
+    | '/transactions/opening-balances'
+    | '/api/files/backup/$name'
+    | '/api/files/staff-document/$id'
   id:
     | '__root__'
     | '/_authenticated'
     | '/auth'
-    | '/reset-password'
-    | '/_authenticated/$'
+    | '/_authenticated/account'
     | '/_authenticated/customers'
     | '/_authenticated/reports'
     | '/_authenticated/suppliers'
+    | '/print/$id'
+    | '/print/statement'
     | '/_authenticated/'
     | '/_authenticated/inventory/adjustments'
     | '/_authenticated/inventory/books'
@@ -464,6 +523,8 @@ export interface FileRouteTypes {
     | '/_authenticated/sales/returns'
     | '/_authenticated/settings/audit-log'
     | '/_authenticated/settings/backup-and-restore'
+    | '/_authenticated/settings/company'
+    | '/_authenticated/settings/data-import'
     | '/_authenticated/settings/financial-years'
     | '/_authenticated/settings/users-and-roles'
     | '/_authenticated/staff/attendance-and-leave'
@@ -473,18 +534,22 @@ export interface FileRouteTypes {
     | '/_authenticated/transactions/bank-accounts'
     | '/_authenticated/transactions/cash-book'
     | '/_authenticated/transactions/chart-of-accounts'
+    | '/_authenticated/transactions/expense-heads'
     | '/_authenticated/transactions/expenses'
     | '/_authenticated/transactions/general-ledger'
     | '/_authenticated/transactions/journal'
-    | '/_authenticated/transactions/vouchers'
-    | '/api/public/auth-anon'
+    | '/_authenticated/transactions/opening-balances'
+    | '/api/files/backup/$name'
+    | '/api/files/staff-document/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
-  ApiPublicAuthAnonRoute: typeof ApiPublicAuthAnonRoute
+  PrintIdRoute: typeof PrintIdRoute
+  PrintStatementRoute: typeof PrintStatementRoute
+  ApiFilesBackupNameRoute: typeof ApiFilesBackupNameRoute
+  ApiFilesStaffDocumentIdRoute: typeof ApiFilesStaffDocumentIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -503,13 +568,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
@@ -517,11 +575,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/$': {
-      id: '/_authenticated/$'
-      path: '/$'
-      fullPath: '/$'
-      preLoaderRoute: typeof AuthenticatedSplatRouteImport
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/customers': {
@@ -544,6 +602,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/suppliers'
       preLoaderRoute: typeof AuthenticatedSuppliersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/print/$id': {
+      id: '/print/$id'
+      path: '/print/$id'
+      fullPath: '/print/$id'
+      preLoaderRoute: typeof PrintIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/print/statement': {
+      id: '/print/statement'
+      path: '/print/statement'
+      fullPath: '/print/statement'
+      preLoaderRoute: typeof PrintStatementRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/inventory/adjustments': {
       id: '/_authenticated/inventory/adjustments'
@@ -643,6 +715,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsBackupAndRestoreRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings/company': {
+      id: '/_authenticated/settings/company'
+      path: '/settings/company'
+      fullPath: '/settings/company'
+      preLoaderRoute: typeof AuthenticatedSettingsCompanyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/data-import': {
+      id: '/_authenticated/settings/data-import'
+      path: '/settings/data-import'
+      fullPath: '/settings/data-import'
+      preLoaderRoute: typeof AuthenticatedSettingsDataImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings/financial-years': {
       id: '/_authenticated/settings/financial-years'
       path: '/settings/financial-years'
@@ -706,6 +792,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsChartOfAccountsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/transactions/expense-heads': {
+      id: '/_authenticated/transactions/expense-heads'
+      path: '/transactions/expense-heads'
+      fullPath: '/transactions/expense-heads'
+      preLoaderRoute: typeof AuthenticatedTransactionsExpenseHeadsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/transactions/expenses': {
       id: '/_authenticated/transactions/expenses'
       path: '/transactions/expenses'
@@ -727,25 +820,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsJournalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/transactions/vouchers': {
-      id: '/_authenticated/transactions/vouchers'
-      path: '/transactions/vouchers'
-      fullPath: '/transactions/vouchers'
-      preLoaderRoute: typeof AuthenticatedTransactionsVouchersRouteImport
+    '/_authenticated/transactions/opening-balances': {
+      id: '/_authenticated/transactions/opening-balances'
+      path: '/transactions/opening-balances'
+      fullPath: '/transactions/opening-balances'
+      preLoaderRoute: typeof AuthenticatedTransactionsOpeningBalancesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/auth-anon': {
-      id: '/api/public/auth-anon'
-      path: '/api/public/auth-anon'
-      fullPath: '/api/public/auth-anon'
-      preLoaderRoute: typeof ApiPublicAuthAnonRouteImport
+    '/api/files/backup/$name': {
+      id: '/api/files/backup/$name'
+      path: '/api/files/backup/$name'
+      fullPath: '/api/files/backup/$name'
+      preLoaderRoute: typeof ApiFilesBackupNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/files/staff-document/$id': {
+      id: '/api/files/staff-document/$id'
+      path: '/api/files/staff-document/$id'
+      fullPath: '/api/files/staff-document/$id'
+      preLoaderRoute: typeof ApiFilesStaffDocumentIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedSplatRoute: typeof AuthenticatedSplatRoute
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedSuppliersRoute: typeof AuthenticatedSuppliersRoute
@@ -764,6 +864,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSalesReturnsRoute: typeof AuthenticatedSalesReturnsRoute
   AuthenticatedSettingsAuditLogRoute: typeof AuthenticatedSettingsAuditLogRoute
   AuthenticatedSettingsBackupAndRestoreRoute: typeof AuthenticatedSettingsBackupAndRestoreRoute
+  AuthenticatedSettingsCompanyRoute: typeof AuthenticatedSettingsCompanyRoute
+  AuthenticatedSettingsDataImportRoute: typeof AuthenticatedSettingsDataImportRoute
   AuthenticatedSettingsFinancialYearsRoute: typeof AuthenticatedSettingsFinancialYearsRoute
   AuthenticatedSettingsUsersAndRolesRoute: typeof AuthenticatedSettingsUsersAndRolesRoute
   AuthenticatedStaffAttendanceAndLeaveRoute: typeof AuthenticatedStaffAttendanceAndLeaveRoute
@@ -773,14 +875,15 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTransactionsBankAccountsRoute: typeof AuthenticatedTransactionsBankAccountsRoute
   AuthenticatedTransactionsCashBookRoute: typeof AuthenticatedTransactionsCashBookRoute
   AuthenticatedTransactionsChartOfAccountsRoute: typeof AuthenticatedTransactionsChartOfAccountsRoute
+  AuthenticatedTransactionsExpenseHeadsRoute: typeof AuthenticatedTransactionsExpenseHeadsRoute
   AuthenticatedTransactionsExpensesRoute: typeof AuthenticatedTransactionsExpensesRoute
   AuthenticatedTransactionsGeneralLedgerRoute: typeof AuthenticatedTransactionsGeneralLedgerRoute
   AuthenticatedTransactionsJournalRoute: typeof AuthenticatedTransactionsJournalRoute
-  AuthenticatedTransactionsVouchersRoute: typeof AuthenticatedTransactionsVouchersRoute
+  AuthenticatedTransactionsOpeningBalancesRoute: typeof AuthenticatedTransactionsOpeningBalancesRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedSplatRoute: AuthenticatedSplatRoute,
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedSuppliersRoute: AuthenticatedSuppliersRoute,
@@ -801,6 +904,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsAuditLogRoute: AuthenticatedSettingsAuditLogRoute,
   AuthenticatedSettingsBackupAndRestoreRoute:
     AuthenticatedSettingsBackupAndRestoreRoute,
+  AuthenticatedSettingsCompanyRoute: AuthenticatedSettingsCompanyRoute,
+  AuthenticatedSettingsDataImportRoute: AuthenticatedSettingsDataImportRoute,
   AuthenticatedSettingsFinancialYearsRoute:
     AuthenticatedSettingsFinancialYearsRoute,
   AuthenticatedSettingsUsersAndRolesRoute:
@@ -816,13 +921,15 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedTransactionsCashBookRoute,
   AuthenticatedTransactionsChartOfAccountsRoute:
     AuthenticatedTransactionsChartOfAccountsRoute,
+  AuthenticatedTransactionsExpenseHeadsRoute:
+    AuthenticatedTransactionsExpenseHeadsRoute,
   AuthenticatedTransactionsExpensesRoute:
     AuthenticatedTransactionsExpensesRoute,
   AuthenticatedTransactionsGeneralLedgerRoute:
     AuthenticatedTransactionsGeneralLedgerRoute,
   AuthenticatedTransactionsJournalRoute: AuthenticatedTransactionsJournalRoute,
-  AuthenticatedTransactionsVouchersRoute:
-    AuthenticatedTransactionsVouchersRoute,
+  AuthenticatedTransactionsOpeningBalancesRoute:
+    AuthenticatedTransactionsOpeningBalancesRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -831,8 +938,10 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
-  ApiPublicAuthAnonRoute: ApiPublicAuthAnonRoute,
+  PrintIdRoute: PrintIdRoute,
+  PrintStatementRoute: PrintStatementRoute,
+  ApiFilesBackupNameRoute: ApiFilesBackupNameRoute,
+  ApiFilesStaffDocumentIdRoute: ApiFilesStaffDocumentIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
