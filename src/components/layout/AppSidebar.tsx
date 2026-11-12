@@ -34,15 +34,9 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
           );
           if (!item.children) {
             return (
-              item.path === "/" ? (
-                <Link key={item.title} to="/" className={base} {...(onNavigate ? { onClick: onNavigate } : {})}>
-                  <item.icon className="size-4" />{item.title}
-                </Link>
-              ) : (
-                <Link key={item.title} to="/$" params={{ _splat: item.path.slice(1) }} className={base} {...(onNavigate ? { onClick: onNavigate } : {})}>
-                  <item.icon className="size-4" />{item.title}
-                </Link>
-              )
+              <Link key={item.title} to={item.to ?? "/"} className={base} {...(onNavigate ? { onClick: onNavigate } : {})}>
+                <item.icon className="size-4" />{item.title}
+              </Link>
             );
           }
           const isOpen = open === item.title;
@@ -58,8 +52,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
                   {item.children.map((c) => (
                     <Link
                       key={c.path}
-                      to="/$"
-                      params={{ _splat: c.path.slice(1) }}
+                      to={c.path}
                       {...(onNavigate ? { onClick: onNavigate } : {})}
                       className={cn("block rounded-lg px-3 py-1.5 text-[13px] opacity-80 hover:opacity-100", path === c.path && "bg-sidebar-border font-semibold opacity-100")}
                     >

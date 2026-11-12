@@ -36,6 +36,7 @@ function seedData() {
     financialYears: seed.financialYears,
     company: seed.company,
     expenseHeads: seed.expenseHeads,
+    categories: seed.categoryLists,
   });
 }
 

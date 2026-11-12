@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import type { AppPath } from "@/lib/nav";
 import { useMemo, useState } from "react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
@@ -45,7 +46,7 @@ function Dashboard() {
   const [m1, setM1] = useState<"monthly" | "weekly">("monthly");
   const [m2, setM2] = useState<"monthly" | "weekly">("monthly");
   const [m3, setM3] = useState<"monthly" | "weekly">("monthly");
-  const go = (p: string) => navigate({ to: "/$", params: { _splat: p } });
+  const go = (p: AppPath) => navigate({ to: p });
 
   const rangeLabel = { today: "Today", week: "This week", month: "This month", year: "This year", custom: "Custom range" }[range];
 
@@ -71,12 +72,12 @@ function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <KpiCard title="Receivables" value={formatPKR(k.receivables)} sub={`Overdue ${formatPKR(k.receivablesOverdue)}`} subTone="danger" icon={CreditCard} tint="green" onClick={() => go("customers")} />
-        <KpiCard title="Payables" value={formatPKR(k.payables)} sub={`Overdue ${formatPKR(k.payablesOverdue)}`} subTone="danger" icon={Wallet} tint="pink" onClick={() => go("suppliers")} />
-        <KpiCard title="Stock Summary" value={`${k.stockUnits.toLocaleString()} units`} sub={formatPKR(k.stockValue)} icon={Boxes} tint="blue" onClick={() => go("inventory/stock")} />
-        <KpiCard title="Low Stock Alert" value={`${k.lowStock} items`} icon={AlertTriangle} tint="orange" onClick={() => go("inventory/stock")} />
-        <KpiCard title="Out of Stock" value={`${k.outOfStock} items`} icon={PackageX} tint="pink" onClick={() => go("inventory/stock")} />
-        <KpiCard title="Outstanding Samples" value={`${k.outstandingSamples} slips`} icon={BookOpenCheck} tint="purple" onClick={() => go("inventory/samples")} />
+        <KpiCard title="Receivables" value={formatPKR(k.receivables)} sub={`Overdue ${formatPKR(k.receivablesOverdue)}`} subTone="danger" icon={CreditCard} tint="green" onClick={() => go("/customers")} />
+        <KpiCard title="Payables" value={formatPKR(k.payables)} sub={`Overdue ${formatPKR(k.payablesOverdue)}`} subTone="danger" icon={Wallet} tint="pink" onClick={() => go("/suppliers")} />
+        <KpiCard title="Stock Summary" value={`${k.stockUnits.toLocaleString()} units`} sub={formatPKR(k.stockValue)} icon={Boxes} tint="blue" onClick={() => go("/inventory/stock")} />
+        <KpiCard title="Low Stock Alert" value={`${k.lowStock} items`} icon={AlertTriangle} tint="orange" onClick={() => go("/inventory/stock")} />
+        <KpiCard title="Out of Stock" value={`${k.outOfStock} items`} icon={PackageX} tint="pink" onClick={() => go("/inventory/stock")} />
+        <KpiCard title="Outstanding Samples" value={`${k.outstandingSamples} slips`} icon={BookOpenCheck} tint="purple" onClick={() => go("/inventory/samples")} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-4">
