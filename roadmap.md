@@ -10,3 +10,4 @@
 - [ ] Step 8 – Staff & HR
 - [ ] Step 9 – Reports hub
 - [ ] Step 10 – Settings & polish
+- [x] Client review (17 points): categories, customer discount, invoice/voucher print, invoice→order, damaged returns, receipts methods, product stock movement, reports, auto codes
