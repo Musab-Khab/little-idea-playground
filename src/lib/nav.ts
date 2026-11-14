@@ -30,7 +30,7 @@ export const navItems: NavItem[] = [
   { title: "Transactions", path: "/transactions", icon: ArrowLeftRight, permission: "accounts.manage|expenses.create", children: kids("/transactions", ["Expenses", "Vouchers", "Journal", "Cash Book", "Bank Accounts", "General Ledger", "Chart of Accounts"]) },
   { title: "Reports", path: "/reports", to: "/reports", icon: BarChart3, permission: "reports.view" },
   { title: "Staff & HR", path: "/staff", icon: UserCog, permission: "staff.view", children: kids("/staff", ["Staff", "Attendance & Leave", "Payroll", "Documents"]) },
-  { title: "Settings", path: "/settings", icon: Settings, permission: "settings.manage|audit.view", children: kids("/settings", ["Users & Roles", "Financial Years", "Backup & Restore", "Audit Log"]) },
+  { title: "Settings", path: "/settings", icon: Settings, permission: "settings.manage|audit.view", children: kids("/settings", ["Financial Years", "Backup & Restore", "Audit Log"]) },
 ];
 
 export function canAny(can: (p: string) => boolean, spec?: string) {

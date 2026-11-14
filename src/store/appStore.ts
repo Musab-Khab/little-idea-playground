@@ -66,7 +66,7 @@ export const useAppStore = create<AppState>()(
       range: "month",
       customFrom: "2025-07-01",
       customTo: seed.DEMO_TODAY,
-      setRole: (roleId) => set({ roleId }),
+      setRole: () => set({ roleId: "admin" }),
       setFy: (fyId) => set({ fyId }),
       setRange: (range) => set({ range }),
       setCustom: (customFrom, customTo) => set({ customFrom, customTo, range: "custom" }),
@@ -79,7 +79,7 @@ export const useAppStore = create<AppState>()(
       skipHydration: true,
       merge: (persisted, current) => {
         const saved = persisted as Partial<AppState> | undefined;
-        return { ...current, ...saved, data: { ...current.data, ...saved?.data } };
+        return { ...current, ...saved, roleId: "admin", data: { ...current.data, ...saved?.data, roles: current.data.roles, categories: {...current.data.categories, ...saved?.data?.categories, bookCategory: [...new Set([...(current.data.categories['bookCategory']??[]), ...(saved?.data?.categories?.['bookCategory']??[])])]} } };
       },
     },
   ),

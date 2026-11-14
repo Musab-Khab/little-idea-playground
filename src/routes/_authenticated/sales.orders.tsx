@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { moduleService } from "@/services/moduleService";
 import { formatDate, formatPKR } from "@/lib/format";
+import {customerDiscount} from '@/services/customerDiscountService';
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/sales/orders")({
@@ -205,6 +206,8 @@ function NewOrderDialog({ user, onClose }: { user: string; onClose: () => void }
   const [date, setDate] = useState(DEMO_TODAY);
   const [lines, setLines] = useState<OrderLineInput[]>([{ bookId: "", qty: 1, rate: 0, discountPct: 0 }]);
 
+  const customer=data.customers.find(c=>c.id===customerId);
+  const discount=(bookId:string,rate:number)=>customerDiscount(customer,data.books.find(b=>b.id===bookId)?.category??'',rate);
   const setLine = (i: number, patch: Partial<OrderLineInput>) => setLines(lines.map((l, j) => (j === i ? { ...l, ...patch } : l)));
   const valid = lines.filter((l) => l.bookId && l.qty > 0);
   const total = valid.reduce((s, l) => s + l.qty * l.rate * (1 - l.discountPct / 100), 0);
@@ -217,7 +220,7 @@ function NewOrderDialog({ user, onClose }: { user: string; onClose: () => void }
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1">
             <Label>Customer</Label>
-            <Select value={customerId} onValueChange={setCustomerId}>
+            <Select value={customerId} onValueChange={v=>{setCustomerId(v);setLines(ls=>ls.map(l=>({...l,discountPct:customerDiscount(data.customers.find(c=>c.id===v),books.find(b=>b.id===l.bookId)?.category??'',l.rate)})));}}>
               <SelectTrigger><SelectValue placeholder="Choose customer" /></SelectTrigger>
               <SelectContent>{customers.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
             </Select>
@@ -230,13 +233,13 @@ function NewOrderDialog({ user, onClose }: { user: string; onClose: () => void }
           </div>
           {lines.map((l, i) => (
             <div key={i} className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_80px_100px_80px_40px]">
-              <Select value={l.bookId} onValueChange={(v) => setLine(i, { bookId: v, rate: books.find((b) => b.id === v)?.salePrice ?? 0 })}>
+              <Select value={l.bookId} onValueChange={(v) => setLine(i, { bookId: v, rate: books.find((b) => b.id === v)?.salePrice ?? 0, discountPct:discount(v,books.find(b=>b.id===v)?.salePrice??0) })}>
                 <SelectTrigger className="col-span-2 sm:col-span-1"><SelectValue placeholder="Choose book" /></SelectTrigger>
                 <SelectContent>{books.map((b) => <SelectItem key={b.id} value={b.id}>{b.code} · {b.name}</SelectItem>)}</SelectContent>
               </Select>
               <Input type="number" min={1} value={l.qty} onChange={(e) => setLine(i, { qty: Number(e.target.value) })} />
-              <Input type="number" min={0} value={l.rate} onChange={(e) => setLine(i, { rate: Number(e.target.value) })} />
-              <Input type="number" min={0} max={100} value={l.discountPct} onChange={(e) => setLine(i, { discountPct: Number(e.target.value) })} />
+              <Input type="number" min={0} value={l.rate} onChange={(e) => setLine(i, { rate: Number(e.target.value), ...(customer?.discountMode==='Fixed'?{discountPct:discount(l.bookId,Number(e.target.value))}:{}) })} />
+              <Input aria-label="Order discount %" disabled={customer?.discountMode==='Fixed'} type="number" min={0} max={100} value={l.discountPct} onChange={(e) => setLine(i, { discountPct: Number(e.target.value) })} />
               <Button variant="ghost" size="icon" aria-label="Remove line" disabled={lines.length === 1} onClick={() => setLines(lines.filter((_, j) => j !== i))}><Trash2 className="size-4" /></Button>
             </div>
           ))}

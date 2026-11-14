@@ -1,6 +1,8 @@
 import { DEMO_TODAY, docTotal, type DeliveryStatus } from "@/data/mockData";
 import { useAppStore, type AppData } from "@/store/appStore";
 
+import {applyCustomerDiscount} from './customerDiscountService';
+
 export type SalesOrder = AppData["salesOrders"][number];
 export interface OrderLineInput { bookId: string; qty: number; rate: number; discountPct: number }
 
@@ -31,7 +33,7 @@ export const salesOrderService = {
       no = nextOrderNo(d);
       const order = {
         id: `SO${Date.now()}`, no, date: input.date || DEMO_TODAY, customerId: input.customerId,
-        items: input.items.map((i) => ({ ...i, delivered: 0 })), status: "Pending" as DeliveryStatus, createdBy: user,
+        items: applyCustomerDiscount(input.items,d.customers.find(c=>c.id===input.customerId),d.books).map((i) => ({ ...i, delivered: 0 })), status: "Pending" as DeliveryStatus, createdBy: user,
       };
       return {
         ...d,

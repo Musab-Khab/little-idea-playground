@@ -1,6 +1,7 @@
 import {useAppStore,type AppData} from '@/store/appStore';
 import {DEMO_TODAY,docTotal,type LineItem} from '@/data/mockData';
 import type {ModuleConfig,Collection} from '@/lib/moduleConfig';
+import {applyCustomerDiscount,validateDiscount} from './customerDiscountService';
 export type Row=Record<string,unknown>;
 export const rowsOf=(data:AppData,key:Collection):Row[]=> data[key] as unknown as Row[];
 export const text=(row:Row,key:string)=>String(row[key]??'');
@@ -37,6 +38,7 @@ function stockChange(data:AppData,lines:Row[],direction:number,ref:string,date:s
  return {...data,books:data.books.map(b=>({...b,availableStock:b.availableStock+(changes.get(b.id)??0)})),stockMovements:[...data.stockMovements,...[...changes].filter(([id])=>data.books.some(b=>b.id===id)).map(([bookId,qty])=>({id:crypto.randomUUID(),date,bookId,type:qty>0?'Received':'Issued',ref,qtyIn:Math.max(0,qty),qtyOut:Math.max(0,-qty)}))]};
 }
 export function validateRecord(config:ModuleConfig,row:Row,data:AppData){
+ if(config.collection==='customers')validateDiscount(row);
  for(const f of config.fields){if(f.required&&(row[f.key]===''||row[f.key]===undefined||row[f.key]===null))throw Error(`${f.label} is required.`);if(f.type==='number'&&!Number.isFinite(Number(row[f.key]??0)))throw Error(`${f.label} must be a valid number.`);}
  for(const key of ['code','empId','accountNo'])if(row[key]&&rowsOf(data,config.collection).some(r=>r[key]===row[key]&&r['id']!==row['id']))throw Error(`${key} must be unique.`);
  if(config.lines&&config.lines!=='journal'){if(!linesOf(row).length)throw Error('Add at least one book.');for(const l of linesOf(row))if(!l['bookId']||!Number.isInteger(num(l,'qty'))||num(l,'qty')<=0||num(l,'rate')<0||num(l,'discountPct')<0||num(l,'discountPct')>100)throw Error('Enter a book, positive whole quantity and discount between 0 and 100.');if(totalOf(row)<0)throw Error('Discount cannot exceed the total.');}
@@ -57,6 +59,7 @@ export const moduleService={
   if(config.collection==='books'){row['availableStock']=existing?.['availableStock']??num(row,'openingStock');row['damagedStock']=existing?.['damagedStock']??0;}
   if(config.collection==='bankAccounts')row['current']=existing?.['current']??num(row,'opening');
   if(config.lines==='invoice'){row['paidAmount']=0;row['payStatus']='Unpaid';}
+  if(config.collection==='salesInvoices')row['items']=applyCustomerDiscount(linesOf(row).map(l=>({...l,bookId:text(l,'bookId'),rate:num(l,'rate'),discountPct:num(l,'discountPct')})),data.customers.find(c=>c.id===row['customerId']),data.books);
   validateRecord(config,row,data);
   const collection=rowsOf(next,config.collection);next={...next,[config.collection]:existing?collection.map(r=>r===existing?{...row,editedBy:user,editedAt:new Date().toISOString()}:r):[row,...collection]} as unknown as AppData;
   next.auditLog=audit(next,user,existing?'Edited':'Created',config.title,text(row,'no')||text(row,'code')||text(row,'slipNo'),existing?'Record updated':'Record created');return next;

@@ -1,4 +1,7 @@
 # MFAHH roadmap (from MFAHH_frontend_prompt.md)
+- [ ] Customer default/category discounts, percentage/amount and fixed/editable sales pricing
+- [ ] Report head filters and easy date selection with matching printed results
+- [ ] Single Admin experience without sample role switching
 - [ ] Login without profiles, sign-out and password recovery
 - [x] Step 1 – Foundation (layout, store, roles, placeholders)
 - [x] Step 2 – Dashboard

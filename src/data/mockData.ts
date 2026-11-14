@@ -1,3 +1,4 @@
+import type {DiscountRule} from '@/services/customerDiscountService';
 // MFAHH – Modern Financial Accounting & Handling Hub (Turnkey Publishers)
 // Dummy seed data. Demo "today" = 2025-09-12. Currency = PKR.
 
@@ -32,20 +33,14 @@ export const permissionKeys = [
   'reports.view', 'staff.view', 'payroll.manage', 'settings.manage', 'audit.view',
 ] as const;
 
-export const roles = [
+export const roles: {id:string;name:string;permissions:string[]}[] = [
   { id: 'admin', name: 'Admin', permissions: [...permissionKeys] },
-  { id: 'accountant', name: 'Accountant', permissions: ['dashboard.view', 'customers.manage', 'suppliers.manage', 'sales.approve', 'purchases.approve', 'expenses.create', 'expenses.approve', 'accounts.manage', 'reports.view', 'audit.view'] },
-  { id: 'sales', name: 'Sales', permissions: ['dashboard.view', 'customers.manage', 'sales.create', 'samples.manage', 'reports.view'] },
-  { id: 'store', name: 'Store Keeper', permissions: ['dashboard.view', 'books.manage', 'inventory.manage', 'samples.manage', 'purchases.create'] },
-  { id: 'hr', name: 'HR', permissions: ['dashboard.view', 'staff.view', 'payroll.manage'] },
+
 ];
 
 export const users = [
   { id: 'U1', name: 'Admin', email: 'admin@turnkey.pk', roleId: 'admin', status: 'Active' as ActiveStatus },
-  { id: 'U2', name: 'Faisal Qureshi', email: 'faisal@turnkey.pk', roleId: 'accountant', status: 'Active' as ActiveStatus },
-  { id: 'U3', name: 'Hamza Ali', email: 'hamza@turnkey.pk', roleId: 'sales', status: 'Active' as ActiveStatus },
-  { id: 'U4', name: 'Rizwan Ahmed', email: 'rizwan@turnkey.pk', roleId: 'store', status: 'Active' as ActiveStatus },
-  { id: 'U5', name: 'Sana Malik', email: 'sana@turnkey.pk', roleId: 'hr', status: 'Active' as ActiveStatus },
+
 ];
 
 /* ----------------------------- CUSTOMERS --------------------------- */
@@ -63,7 +58,7 @@ export const customers = [
   { id: 'C010', code: 'CUS-010', name: 'Iqra Book Centre', category: 'Dealer' as CustomerCategory, contactPerson: 'Waseem Akram', phone: '0312-5544332', email: 'iqra@mail.com', address: 'Quetta', city: 'Quetta', location: 'Out of City', discountPct: 15, ntn: '', openingBalance: 30000, creditLimit: 150000, status: 'Active' as ActiveStatus },
   { id: 'C011', code: 'CUS-011', name: 'Bright Future Academy', category: 'School' as CustomerCategory, contactPerson: 'Mr. Salman', phone: '0334-7788990', email: 'bfa@mail.com', address: 'North Nazimabad, Karachi', city: 'Karachi', location: 'City', discountPct: 5, ntn: '', openingBalance: 0, creditLimit: 100000, status: 'Inactive' as ActiveStatus },
   { id: 'C012', code: 'CUS-012', name: 'Peshawar Book Mart', category: 'Dealer' as CustomerCategory, contactPerson: 'Gul Rehman', phone: '0315-1239876', email: 'pbm@mail.com', address: 'Qissa Khwani, Peshawar', city: 'Peshawar', location: 'Out of City', discountPct: 15, ntn: '', openingBalance: 90000, creditLimit: 250000, status: 'Active' as ActiveStatus },
-];
+].map(customer=>({...customer,discountType:'Percentage',discountAmount:0,discountMode:'Editable',discountRules:[] as DiscountRule[]}));
 
 /* ----------------------------- SUPPLIERS --------------------------- */
 export type SupplierCategory = 'Paper Supplier' | 'Card Supplier' | 'Printer' | 'Binder' | 'Plate Maker' | 'Laminator' | 'Transporter' | 'Designer' | 'Packaging Supplier' | 'Other';
@@ -347,7 +342,7 @@ export const company = {
 };
 /* ------------------------- CUSTOMIZABLE CATEGORIES ------------------------- */
 export const categoryLists: Record<string, string[]> = {
-  bookCategory: ['Textbook', 'Workbook', 'Guide', 'Stationery', 'Other'],
+  bookCategory: ['Textbook', 'Workbook', 'Guide', 'Stationery', 'Other', 'Copy / Notebook', 'Practical Journal', 'Reference', 'Brochure', 'Prospectus'],
   customerType: ['School', 'Bookshop', 'Dealer', 'Institution', 'Distributor', 'Other'],
   customerLocation: ['City', 'Out of City'],
   supplierCategory: ['Paper Supplier', 'Card Supplier', 'Printer', 'Binder', 'Plate Maker', 'Laminator', 'Transporter', 'Designer', 'Packaging Supplier', 'Other'],
