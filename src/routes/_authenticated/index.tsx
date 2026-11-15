@@ -7,7 +7,7 @@ import {
 } from "recharts";
 import {
   CalendarDays, CalendarRange, TrendingUp, ShoppingBag, Package, Receipt, Wallet, PiggyBank,
-  Coins, Landmark, HandCoins, CreditCard, Boxes, AlertTriangle, PackageX, BookOpenCheck,
+  Coins, Plus, Download, HandCoins, CreditCard, Boxes, AlertTriangle, PackageX, BookOpenCheck,
 } from "lucide-react";
 import { useAppStore } from "@/store/appStore";
 import {
@@ -17,6 +17,7 @@ import { KpiCard } from "@/components/shared/KpiCard";
 import { ChartCard, ModeToggle } from "@/components/shared/ChartCard";
 import { DataTable } from "@/components/shared/DataTable";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { formatCompact, formatDate, formatPKR } from "@/lib/format";
 
@@ -53,6 +54,12 @@ function Dashboard() {
   return (
     <div className="space-y-5">
       <PageHeader title="Dashboard" crumbs={["Home", "Dashboard"]} />
+      <div className="flex flex-wrap gap-2 border-b border-border pb-4">
+        <Button onClick={() => go("/sales/receipts")}><Plus/>Cash receipt</Button>
+        <Button variant="outline" onClick={() => go("/transactions/expenses")}><Plus/>Cash expense</Button>
+        <Button variant="outline" onClick={() => go("/sales/invoices")}><Plus/>Sales invoice</Button>
+        <Button variant="ghost" asChild><a href="/downloads/mfahh-user-manual.pdf" download><Download/>User manual</a></Button>
+      </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <KpiCard title="Today's Sales" value={formatPKR(k.todaySales)} icon={CalendarDays} tint="blue" trend="up" />
@@ -62,13 +69,12 @@ function Dashboard() {
         <KpiCard title="Monthly Purchases" value={formatPKR(k.monthPurchases)} icon={Package} tint="pink" />
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <KpiCard title="Today's Expenses" value={formatPKR(k.todayExpenses)} icon={Receipt} tint="pink" trend="down" />
         <KpiCard title="Monthly Expenses" value={formatPKR(k.monthExpenses)} icon={Wallet} tint="orange" />
         <KpiCard title="Gross Profit" sub={rangeLabel} value={formatPKR(k.grossProfit)} icon={PiggyBank} tint="green" trend={k.grossProfit >= 0 ? "up" : "down"} />
         <KpiCard title="Net Profit" sub={rangeLabel} value={formatPKR(k.netProfit)} icon={Coins} tint="blue" trend={k.netProfit >= 0 ? "up" : "down"} />
         <KpiCard title="Cash Balance" value={formatPKR(k.cash)} icon={HandCoins} tint="purple" />
-        <KpiCard title="Bank Balance" value={formatPKR(k.bank)} icon={Landmark} tint="blue" />
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">

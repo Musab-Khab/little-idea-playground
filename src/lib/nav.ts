@@ -27,7 +27,7 @@ export const navItems: NavItem[] = [
   { title: "Inventory", path: "/inventory", icon: Boxes, permission: "inventory.manage|books.manage|samples.manage", children: kids("/inventory", ["Books", "Stock", "Samples", "Adjustments", "Damaged"]) },
   { title: "Customers", path: "/customers", to: "/customers", icon: Users, permission: "customers.manage" },
   { title: "Suppliers", path: "/suppliers", to: "/suppliers", icon: Factory, permission: "suppliers.manage" },
-  { title: "Transactions", path: "/transactions", icon: ArrowLeftRight, permission: "accounts.manage|expenses.create", children: kids("/transactions", ["Expenses", "Vouchers", "Journal", "Cash Book", "Bank Accounts", "General Ledger", "Chart of Accounts"]) },
+  { title: "Transactions", path: "/transactions", icon: ArrowLeftRight, permission: "accounts.manage|expenses.create", children: kids("/transactions", ["Expenses", "Vouchers", "Journal", "Cash Book", "General Ledger", "Chart of Accounts"]) },
   { title: "Reports", path: "/reports", to: "/reports", icon: BarChart3, permission: "reports.view" },
   { title: "Staff & HR", path: "/staff", icon: UserCog, permission: "staff.view", children: kids("/staff", ["Staff", "Attendance & Leave", "Payroll", "Documents"]) },
   { title: "Settings", path: "/settings", icon: Settings, permission: "settings.manage|audit.view", children: kids("/settings", ["Financial Years", "Backup & Restore", "Audit Log"]) },

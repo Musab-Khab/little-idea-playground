@@ -23,3 +23,5 @@
 
 - Customer discount rules resolve in customerDiscountService and persist as effective line percentages; fixed rules are rechecked when saving sales, keeping historical totals and printing compatible.
 - Report filters apply before totals and are shared by the displayed table and print output; balance reports use transactions through the selected end date.
+- New money records are normalized in moduleService before validation; legacy payment methods remain unchanged to preserve posted accounting history.
+- The fixed user manual is prebuilt and served from public/downloads so the download works without browser PDF libraries.

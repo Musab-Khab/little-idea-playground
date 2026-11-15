@@ -1,4 +1,6 @@
 # MFAHH roadmap (from MFAHH_frontend_prompt.md)
+- [ ] Simplify cash receipt/expense/payment entry and remove bank screens without deleting history
+- [ ] Improve daily-action navigation and create downloadable PDF user manual
 - [x] Customer default/category discounts, percentage/amount and fixed/editable sales pricing
 - [x] Report head filters and easy date selection with matching printed results
 - [x] Single Admin experience without sample role switching

@@ -54,7 +54,8 @@ export const moduleService={
   const row:Row={...input,id:existing?.['id']??crypto.randomUUID(),createdBy:existing?.['createdBy']??user,createdAt:existing?.['createdAt']??new Date().toISOString()};
   if(config.master&&!text(row,'code').trim()&&codePrefix[config.collection])row['code']=nextCode(data,config.collection);
    let next={...data};if(config.prefix&&!existing){const no=`${config.prefix}-${data.numberSeries[config.prefix]}`;row[config.collection==='samples'?'slipNo':'no']=no;next.numberSeries={...data.numberSeries,[config.prefix]:data.numberSeries[config.prefix]+1};result=no;}
-  if(!config.master&&config.collection!=='staffDocuments')row['docStatus']='Draft';if(existing&&!config.master){row['no']=existing['no'];result=text(existing,'no');}
+   if(['customerReceipts','supplierPayments','expenses'].includes(config.collection)&&(!existing||isCashMethod(existing['method']))){row['method']='Cash';delete row['bankId'];}
+   if(!config.master&&config.collection!=='staffDocuments')row['docStatus']='Draft';if(existing&&!config.master){row['no']=existing['no'];result=text(existing,'no');}
   if(config.collection==='samples'){row['status']='Issued';row['issuedBy']=user;row['items']=linesOf(row).map(l=>({...l,returned:0}));next=stockChange(next,linesOf(row),-1,text(row,'slipNo'),text(row,'date'),role.permissions.includes('stock.negative_allow'));delete row['docStatus'];}
   if(config.collection==='books'){row['availableStock']=existing?.['availableStock']??num(row,'openingStock');row['damagedStock']=existing?.['damagedStock']??0;}
   if(config.collection==='bankAccounts')row['current']=existing?.['current']??num(row,'opening');
