@@ -195,10 +195,64 @@ export interface LineMathInput {
   qty?: number;
   rate?: number;
   discountPct?: number;
+  /** Rs off each copy, taken before any percentage discount. */
+  discountAmt?: number | null;
 }
 
 export const lineAmount = (l: LineMathInput) =>
-  round2((l.qty ?? 0) * (l.rate ?? 0) * (1 - (l.discountPct ?? 0) / 100));
+  round2((l.qty ?? 0) * ((l.rate ?? 0) - (l.discountAmt ?? 0)) * (1 - (l.discountPct ?? 0) / 100));
+
+/* ------------------------------------------------------- customer discounts */
+
+export const DISCOUNT_TYPES = ["Percentage", "Amount"] as const;
+export type DiscountType = (typeof DISCOUNT_TYPES)[number];
+export const DISCOUNT_MODES = ["Editable", "Fixed"] as const;
+export interface CategoryDiscount {
+  category: string;
+  type: DiscountType;
+  value: number;
+}
+export interface CustomerDiscount {
+  discountType: string;
+  discountValue: number;
+  categoryDiscounts: unknown;
+}
+
+/** Category discounts arrive as an array from the DB and as JSON text in table rows. */
+export function parseCategoryDiscounts(v: unknown): CategoryDiscount[] {
+  let list = v;
+  if (typeof v === "string") {
+    try {
+      list = v ? JSON.parse(v) : [];
+    } catch {
+      list = [];
+    }
+  }
+  return Array.isArray(list) ? (list as CategoryDiscount[]) : [];
+}
+
+/** A customer's discount on a book: its category rule if there is one, else the default. */
+export function discountFor(c: CustomerDiscount, productCategory: string) {
+  const rule = parseCategoryDiscounts(c.categoryDiscounts).find(
+    (r) => r.category === productCategory,
+  ) ?? { type: c.discountType, value: Number(c.discountValue) || 0 };
+  return rule.type === "Amount"
+    ? { discountPct: 0, discountAmt: rule.value }
+    : { discountPct: rule.value, discountAmt: 0 };
+}
+
+/** A document line's discount as shown on screens and prints, e.g. "Rs 25/copy + 5%". */
+export function lineDiscount(l: Record<string, unknown>) {
+  const amt = Number(l["discountAmt"] ?? 0);
+  const pct = Number(l["discountPct"] ?? 0);
+  return [amt ? `Rs ${amt}/copy` : "", pct ? `${pct}%` : ""].filter(Boolean).join(" + ");
+}
+
+/** "10%" or "Rs 25/copy", for lists and prints. */
+export function discountLabel(type: string, value: number) {
+  if (!value) return "";
+  return type === "Amount" ? `Rs ${value}/copy` : `${value}%`;
+}
 
 /** Invoice-style totals: line discounts, then document discount, then tax on the net. */
 export function docTotals(lines: LineMathInput[], discount = 0, taxPct = 0) {

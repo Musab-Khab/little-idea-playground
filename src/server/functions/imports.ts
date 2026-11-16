@@ -4,14 +4,14 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { inArray, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "../db/client";
 import * as t from "../db/schema";
 import { writeAudit } from "../audit";
 import { assertPerm, requireUser } from "../security/session";
 import { createDocument } from "../posting/engine";
 import { safe } from "./_safe";
-import { CUSTOMER_CATEGORIES, PRODUCT_CATEGORIES, SUPPLIER_CATEGORIES } from "@/shared/masters";
+import { CATEGORY_FALLBACK, type CategoryKind } from "@/shared/masters";
 import type { Permission } from "@/shared/permissions";
 
 const cell = z.union([z.string(), z.number(), z.null()]).optional();
@@ -26,6 +26,15 @@ type RowError = { row: number; message: string };
 
 const pickCategory = (value: string, allowed: readonly string[], fallback: string) =>
   allowed.find((c) => c.toLowerCase() === value.toLowerCase()) ?? (value ? null : fallback);
+
+/** Active names of each category list, from Manage categories. */
+async function activeCategories(db: ReturnType<typeof getDb>) {
+  const rows = await db
+    .select({ kind: t.categories.kind, name: t.categories.name })
+    .from(t.categories)
+    .where(eq(t.categories.status, "Active"));
+  return (kind: CategoryKind) => rows.filter((r) => r.kind === kind).map((r) => r.name);
+}
 
 export const importMasters = createServerFn({ method: "POST" })
   .validator(
@@ -54,6 +63,7 @@ export const importMasters = createServerFn({ method: "POST" })
       const existing = new Set(
         (await db.select({ code: table.code }).from(table)).map((r) => r.code.toLowerCase()),
       );
+      const cats = await activeCategories(db);
       const seen = new Set<string>();
       const errors: RowError[] = [];
       const values: Record<string, unknown>[] = [];
@@ -70,7 +80,11 @@ export const importMasters = createServerFn({ method: "POST" })
           return errors.push({ row, message: `Code ${code} appears twice in the file` });
         seen.add(code.toLowerCase());
         if (data.entity === "products") {
-          const category = pickCategory(str(r["category"]), PRODUCT_CATEGORIES, "Textbook");
+          const category = pickCategory(
+            str(r["category"]),
+            cats("productCategory"),
+            CATEGORY_FALLBACK.productCategory,
+          );
           if (!category)
             return errors.push({ row, message: `Unknown category "${str(r["category"])}"` });
           const costPrice = num(r["costPrice"]),
@@ -95,12 +109,22 @@ export const importMasters = createServerFn({ method: "POST" })
             createdBy: user.id,
           });
         } else {
-          const cats = data.entity === "customers" ? CUSTOMER_CATEGORIES : SUPPLIER_CATEGORIES;
-          const category = pickCategory(str(r["category"]), cats, "Other");
+          const kind = data.entity === "customers" ? "customerType" : "supplierCategory";
+          const category = pickCategory(str(r["category"]), cats(kind), CATEGORY_FALLBACK[kind]);
           if (!category)
             return errors.push({
               row,
-              message: `Unknown category "${str(r["category"])}". Use one of: ${cats.join(", ")}`,
+              message: `Unknown category "${str(r["category"])}". Use one of: ${cats(kind).join(", ")}`,
+            });
+          const location = pickCategory(
+            str(r["location"]),
+            cats("customerLocation"),
+            CATEGORY_FALLBACK.customerLocation,
+          );
+          if (data.entity === "customers" && !location)
+            return errors.push({
+              row,
+              message: `Unknown location "${str(r["location"])}". Use one of: ${cats("customerLocation").join(", ")}`,
             });
           const creditDays = num(r["creditDays"]);
           if (!Number.isInteger(creditDays) || creditDays < 0)
@@ -120,7 +144,7 @@ export const importMasters = createServerFn({ method: "POST" })
             ntn: str(r["ntn"]),
             creditDays,
             ...(data.entity === "customers"
-              ? { creditLimit: Math.max(0, num(r["creditLimit"])) }
+              ? { location, creditLimit: Math.max(0, num(r["creditLimit"])) }
               : {}),
             createdBy: user.id,
           });

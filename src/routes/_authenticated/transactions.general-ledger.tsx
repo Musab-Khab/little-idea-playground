@@ -7,7 +7,7 @@ import { AccountLedger } from "@/components/reports/AccountLedger";
 import { useLookups } from "@/lib/lookups";
 
 export const Route = createFileRoute("/_authenticated/transactions/general-ledger")({
-  head: () => ({ meta: [{ title: "General Ledger – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "General Ledger – Turnkey Publishers" }] }),
   component: GeneralLedger,
 });
 

@@ -26,7 +26,7 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { useAction, useApi } from "@/lib/api";
 import { formatAmount, formatDate, formatDateTime, formatPKR } from "@/lib/format";
 import { getDocument, transitionDocument, type DocumentDetail } from "@/server/functions/documents";
-import type { DocType } from "@/shared/documents";
+import { lineDiscount, type DocType } from "@/shared/documents";
 import type { DocInput } from "@/server/posting/prepare";
 import { DocumentEditor } from "./DocumentEditor";
 
@@ -75,6 +75,7 @@ function toInput(d: DocumentDetail): Partial<DocInput> {
       qty: Number(l["qty"] ?? 0),
       rate: Number(l["rate"] ?? 0),
       discountPct: Number(l["discountPct"] ?? 0),
+      discountAmt: Number(l["discountAmt"] ?? 0),
       debit: Number(l["debit"] ?? 0),
       credit: Number(l["credit"] ?? 0),
       refLineId: (l["refLineId"] as string) ?? null,
@@ -617,6 +618,7 @@ function LinesTable({ type, lines }: { type: DocType; lines: Row[] }) {
     item: l["productName"]
       ? `${s(l, "productCode")} · ${s(l, "productName")}`
       : `${s(l, "accountName")}: ${s(l, "description")}`,
+    disc: lineDiscount(l),
   }));
   const cols: Col[] = [
     ["item", "Item"],
@@ -625,7 +627,7 @@ function LinesTable({ type, lines }: { type: DocType; lines: Row[] }) {
   if (type === "SO" || type === "SMP" || type === "SI" || type === "PI")
     cols.push(["doneQty", type === "SO" ? "Delivered" : "Returned"]);
   if (!["SMP", "SMR", "ADJ", "DMG"].includes(type))
-    cols.push(["rate", "Rate", "amt"], ["discountPct", "Disc %"], ["amount", "Amount", "amt"]);
+    cols.push(["rate", "Rate", "amt"], ["disc", "Discount"], ["amount", "Amount", "amt"]);
   else cols.push(["unitCost", "Unit cost", "amt"]);
   return <SimpleTable rows={rows} cols={cols} />;
 }

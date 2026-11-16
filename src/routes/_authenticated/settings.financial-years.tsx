@@ -26,7 +26,7 @@ import {
 } from "@/server/functions/admin";
 
 export const Route = createFileRoute("/_authenticated/settings/financial-years")({
-  head: () => ({ meta: [{ title: "Financial Years – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Financial Years – Turnkey Publishers" }] }),
   component: FinancialYears,
 });
 

@@ -1,8 +1,8 @@
 import type { FieldDef } from "./MasterPage";
 
-/** Fields shared by customers and suppliers. */
+/** Fields shared by customers and suppliers; a blank code is numbered automatically. */
 export const partyFields: FieldDef[] = [
-  { key: "code", label: "Code", required: true },
+  { key: "code", label: "Code", autoCode: true },
   { key: "name", label: "Name", required: true },
   { key: "contactPerson", label: "Contact person" },
   { key: "phone", label: "Phone" },

@@ -49,7 +49,7 @@ import { formatCompact, formatDate, formatPKR } from "@/lib/format";
 import { DOC_DEFS, type DocType, todayISO } from "@/shared/documents";
 
 export const Route = createFileRoute("/_authenticated/")({
-  head: () => ({ meta: [{ title: "Dashboard – MFAHH | Turnkey Publishers" }] }),
+  head: () => ({ meta: [{ title: "Dashboard – Turnkey Publishers" }] }),
   component: Dashboard,
 });
 

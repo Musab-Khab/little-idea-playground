@@ -20,7 +20,7 @@ import {
 import { STAFF_DOCUMENT_TYPES } from "@/shared/masters";
 
 export const Route = createFileRoute("/_authenticated/staff/documents")({
-  head: () => ({ meta: [{ title: "Staff Documents – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Staff Documents – Turnkey Publishers" }] }),
   component: DocumentsPage,
 });
 

@@ -194,9 +194,42 @@ const party = () => ({
 });
 export const customers = pgTable("customers", {
   ...party(),
+  /** A `customerLocation` category name. */
+  location: text("location").notNull().default("Karachi"),
   creditLimit: money("credit_limit").notNull().default(0),
+  /** Default discount on sales lines: a percentage, or Rs per copy. */
+  discountType: text("discount_type")
+    .$type<"Percentage" | "Amount">()
+    .notNull()
+    .default("Percentage"),
+  discountValue: money("discount_value").notNull().default(0),
+  /** Fixed: the server applies the customer's discount and ignores what was typed on the line. */
+  discountMode: text("discount_mode").$type<"Editable" | "Fixed">().notNull().default("Editable"),
+  /** Per book-category overrides: [{ category, type, value }]. */
+  categoryDiscounts: jsonb("category_discounts")
+    .$type<{ category: string; type: "Percentage" | "Amount"; value: number }[]>()
+    .notNull()
+    .default([]),
 });
 export const suppliers = pgTable("suppliers", { ...party() });
+
+/**
+ * User-editable lists (customer types and locations, supplier and book categories).
+ * Masters store the name as text; renaming a category renames it on those masters too.
+ */
+export const categories = pgTable(
+  "categories",
+  {
+    id: id(),
+    kind: text("kind")
+      .$type<"customerType" | "customerLocation" | "supplierCategory" | "productCategory">()
+      .notNull(),
+    name: text("name").notNull(),
+    status: text("status").$type<"Active" | "Inactive">().notNull().default("Active"),
+    ...tracking(),
+  },
+  (t) => [uniqueIndex("categories_kind_name").on(t.kind, sql`lower(${t.name})`)],
+);
 
 export const products = pgTable("products", {
   id: id(),
@@ -411,6 +444,8 @@ export const documentLines = pgTable(
     discountPct: numeric("discount_pct", { precision: 6, scale: 2, mode: "number" })
       .notNull()
       .default(0),
+    /** Rs off each copy (customer "Amount" discounts), applied before discountPct. */
+    discountAmt: money("discount_amt").notNull().default(0),
     amount: money("amount").notNull().default(0),
     debit: money("debit").notNull().default(0),
     credit: money("credit").notNull().default(0),

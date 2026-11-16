@@ -156,9 +156,58 @@
 
 /* Printing: hide app chrome and controls, keep content full width. */
 @media print {
-  .no-print { display: none !important; }
-  body { background: white; }
-  main { padding: 0 !important; }
-  .card-surface { box-shadow: none !important; border: none !important; }
-  @page { size: A4; margin: 12mm; }
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+  main {
+    padding: 0 !important;
+  }
+  .card-surface {
+    box-shadow: none !important;
+    border: none !important;
+  }
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  /* Reports print in Turnkey's filing format: Times, black text, plain ruled tables. */
+  .report-print {
+    font-family: "Times New Roman", Times, serif;
+    color: #000;
+  }
+  .report-print * {
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+  .report-print table {
+    font-size: 12.5px;
+    border-collapse: collapse;
+  }
+  .report-print thead tr {
+    border-bottom: 1px solid #000 !important;
+  }
+  .report-print th {
+    font-weight: 700;
+    padding: 4px 6px !important;
+  }
+  .report-print tbody tr {
+    border-bottom: 1px solid #777 !important;
+    break-inside: avoid;
+  }
+  .report-print td {
+    padding: 4px 6px !important;
+  }
+  .report-print tfoot tr {
+    border-top: 2px solid #000 !important;
+    border-bottom: 2px solid #000 !important;
+  }
+  /* Keep the coloured bands of invoices and vouchers. */
+  .print-exact,
+  .print-exact * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

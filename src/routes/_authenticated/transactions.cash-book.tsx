@@ -6,7 +6,7 @@ import { CashBankBook } from "@/components/reports/AccountLedger";
 import { useLookups } from "@/lib/lookups";
 
 export const Route = createFileRoute("/_authenticated/transactions/cash-book")({
-  head: () => ({ meta: [{ title: "Cash & Bank Books – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Cash & Bank Books – Turnkey Publishers" }] }),
   component: CashBook,
 });
 

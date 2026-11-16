@@ -2,9 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { and, asc, between, desc, eq, sql } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { getDb } from "../db/client";
+import { storageDir } from "../storage";
 import * as t from "../db/schema";
 import { writeAudit } from "../audit";
 import { assertPerm, requireUser } from "../security/session";
@@ -238,12 +239,6 @@ const ALLOWED = new Map([
   ["image/png", ".png"],
 ]);
 const MAX_BYTES = 5 * 1024 * 1024;
-
-export const storageDir = () => {
-  const dir = resolve(process.env.STORAGE_DIR || "./storage", "staff-docs");
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  return dir;
-};
 
 function sniff(buf: Buffer): string | null {
   if (buf.subarray(0, 5).toString() === "%PDF-") return "application/pdf";

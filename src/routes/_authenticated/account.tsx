@@ -8,7 +8,7 @@ import { useSession } from "@/lib/session";
 import { changePassword } from "@/server/functions/auth";
 
 export const Route = createFileRoute("/_authenticated/account")({
-  head: () => ({ meta: [{ title: "My Account – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "My Account – Turnkey Publishers" }] }),
   component: Account,
 });
 

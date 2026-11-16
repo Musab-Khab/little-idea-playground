@@ -4,7 +4,7 @@ import { CashBankBook } from "@/components/reports/AccountLedger";
 import { formatPKR } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/transactions/bank-accounts")({
-  head: () => ({ meta: [{ title: "Bank Accounts – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Bank Accounts – Turnkey Publishers" }] }),
   component: () => (
     <MasterPage
       entity="bankAccounts"

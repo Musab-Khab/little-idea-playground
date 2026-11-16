@@ -6,7 +6,7 @@ import { ACCOUNT_TYPES } from "@/shared/masters";
 const isSystem = (r: Record<string, unknown>) => Boolean(r["systemKey"]);
 
 export const Route = createFileRoute("/_authenticated/transactions/chart-of-accounts")({
-  head: () => ({ meta: [{ title: "Chart of Accounts – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Chart of Accounts – Turnkey Publishers" }] }),
   component: () => (
     <MasterPage
       entity="accounts"

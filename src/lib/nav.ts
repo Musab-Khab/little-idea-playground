@@ -12,6 +12,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Permission } from "@/shared/permissions";
+import { DOC_DEFS, type DocType } from "@/shared/documents";
+
+/** Receipts, supplier payments and expenses, listed together on the Vouchers page. */
+export const VOUCHER_TYPES = ["RV", "PV", "EXP"] as const satisfies readonly DocType[];
+const VOUCHER_PERMS = new Set<Permission>([
+  ...VOUCHER_TYPES.flatMap((t) => [DOC_DEFS[t].createPerm, DOC_DEFS[t].approvePerm]),
+  "reports.view",
+]);
 
 export interface NavChild {
   title: string;
@@ -108,12 +116,18 @@ export const navItems: NavItem[] = [
       "expenses.create",
       "expenses.approve",
       "reports.view",
+      ...VOUCHER_PERMS,
     ],
     children: [
       {
         title: "Expenses",
         path: "/transactions/expenses",
         perms: ["expenses.create", "expenses.approve"],
+      },
+      {
+        title: "Receipt & Payment Vouchers",
+        path: "/transactions/vouchers",
+        perms: [...VOUCHER_PERMS],
       },
       {
         title: "Journal Vouchers",

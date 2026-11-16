@@ -30,7 +30,7 @@ const GENERIC_LOGIN_ERROR = "Incorrect email or password.";
 async function totp(secret: string) {
   const { TOTP, Secret } = await import("otpauth");
   return new TOTP({
-    issuer: "MFAHH",
+    issuer: "Turnkey Publishers",
     algorithm: "SHA1",
     digits: 6,
     period: 30,
@@ -150,7 +150,7 @@ export const beginMfaSetup = createServerFn({ method: "POST" }).handler(async ()
   const { Secret, TOTP } = await import("otpauth");
   const secret = new Secret({ size: 20 });
   const uri = new TOTP({
-    issuer: "MFAHH",
+    issuer: "Turnkey Publishers",
     label: u.email,
     algorithm: "SHA1",
     digits: 6,

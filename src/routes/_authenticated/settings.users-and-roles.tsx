@@ -23,7 +23,7 @@ import { listRoles, listUsers, saveRole, saveUser, userAction } from "@/server/f
 import { PERMISSIONS, type Permission } from "@/shared/permissions";
 
 export const Route = createFileRoute("/_authenticated/settings/users-and-roles")({
-  head: () => ({ meta: [{ title: "Users & Roles – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Users & Roles – Turnkey Publishers" }] }),
   component: UsersRoles,
 });
 

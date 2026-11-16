@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { StockStatementReport } from "@/components/reports/Reports";
 
 export const Route = createFileRoute("/_authenticated/inventory/stock")({
-  head: () => ({ meta: [{ title: "Stock – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Stock – Turnkey Publishers" }] }),
   component: () => (
     <div className="space-y-5">
       <PageHeader title="Stock" crumbs={["Home", "Inventory", "Stock"]} />

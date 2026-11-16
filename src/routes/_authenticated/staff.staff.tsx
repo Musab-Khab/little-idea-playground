@@ -5,7 +5,7 @@ import { useSession } from "@/lib/session";
 import { formatPKR } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/staff/staff")({
-  head: () => ({ meta: [{ title: "Staff & Management – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Staff & Management – Turnkey Publishers" }] }),
   component: StaffPage,
 });
 

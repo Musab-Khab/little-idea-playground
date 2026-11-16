@@ -11,7 +11,7 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-5 flex flex-wrap items-end justify-between gap-3 print:hidden">
       <div>
         {crumbs.length > 0 && (
           <nav className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">

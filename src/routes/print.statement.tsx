@@ -4,7 +4,8 @@ import { z } from "zod";
 import { getAuthState } from "@/server/functions/auth";
 import { getPartyStatement } from "@/server/functions/reports";
 import { getLookups } from "@/server/functions/masters";
-import { PrintShell } from "@/components/print/PrintShell";
+import { PrintPage } from "@/components/print/PrintShell";
+import { ReportHeading } from "@/components/print/ReportHeading";
 import { formatAmount, formatDate } from "@/lib/format";
 import { DOC_DEFS, type DocType } from "@/shared/documents";
 
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/print/statement")({
     lookups: await getLookups(),
     deps,
   }),
-  head: () => ({ meta: [{ title: "Statement – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Statement – Turnkey Publishers" }] }),
   component: PrintStatement,
 });
 
@@ -43,69 +44,68 @@ function PrintStatement() {
         ? "Receivable"
         : "Balance";
   return (
-    <PrintShell company={lookups.company} title="Statement of Account">
-      <div className="mb-4 flex justify-between text-sm">
-        <div>
-          <p className="font-semibold">{st.party.name}</p>
-          <p>{st.party.code}</p>
-          <p>{st.party.address}</p>
-          <p>{st.party.phone}</p>
+    <PrintPage>
+      <div className="report-print">
+        <img src="/brand/turnkey-logo.png" alt="Turnkey Publishers" className="float-left h-16" />
+        <ReportHeading screen title="Statement of Account" period={`${deps.from} to ${deps.to}`} />
+        <div className="mb-4 flex justify-between text-sm">
+          <div>
+            <p className="font-semibold">{st.party.name}</p>
+            <p>{st.party.code}</p>
+            <p>{st.party.address}</p>
+            <p>{st.party.phone}</p>
+          </div>
+          <div className="text-right">
+            <p>{lookups.company?.name}</p>
+            <p>
+              Closing {label.toLowerCase()}: <b>Rs {formatAmount(st.closing)}</b>
+            </p>
+          </div>
         </div>
-        <div className="text-right">
-          <p>
-            Period: {formatDate(deps.from)} – {formatDate(deps.to)}
-          </p>
-          <p>
-            Closing {label.toLowerCase()}: <b>Rs {formatAmount(st.closing)}</b>
-          </p>
-        </div>
-      </div>
-      <table className="w-full border-collapse text-xs">
-        <thead>
-          <tr className="border-y-2 border-gray-800 text-left">
-            <th className="py-1">Date</th>
-            <th>Document</th>
-            <th>Particulars</th>
-            <th className="text-right">Debit</th>
-            <th className="text-right">Credit</th>
-            <th className="text-right">{label}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="border-b">
-            <td className="py-1">{formatDate(deps.from)}</td>
-            <td />
-            <td>Opening balance</td>
-            <td />
-            <td />
-            <td className="text-right font-semibold">{formatAmount(st.opening)}</td>
-          </tr>
-          {st.rows.map((r, i) => (
-            <tr key={i} className="border-b border-gray-200">
-              <td className="py-0.5">{formatDate(String(r["date"]))}</td>
-              <td>
-                {String(r["docNo"])}{" "}
-                <span className="text-gray-500">
-                  {DOC_DEFS[String(r["type"]) as DocType]?.label}
-                </span>
-              </td>
-              <td>{String(r["narration"] ?? "")}</td>
-              <td className="text-right">{formatAmount(Number(r["debit"]), true)}</td>
-              <td className="text-right">{formatAmount(Number(r["credit"]), true)}</td>
-              <td className="text-right">{formatAmount(Number(r["balance"]))}</td>
+        <table className="w-full border-collapse text-[12.5px]">
+          <thead>
+            <tr className="border-b border-black text-left">
+              <th className="py-1">Date</th>
+              <th>Document</th>
+              <th>Particulars</th>
+              <th className="text-right">Debit</th>
+              <th className="text-right">Credit</th>
+              <th className="text-right">{label}</th>
             </tr>
-          ))}
-          <tr className="border-t-2 border-gray-800 font-bold">
-            <td colSpan={5} className="py-1">
-              Closing balance
-            </td>
-            <td className="text-right">{formatAmount(st.closing)}</td>
-          </tr>
-        </tbody>
-      </table>
-      <p className="mt-6 text-xs">
-        Please report any discrepancy within 15 days of receiving this statement.
-      </p>
-    </PrintShell>
+          </thead>
+          <tbody>
+            <tr className="border-b">
+              <td className="py-1">{formatDate(deps.from)}</td>
+              <td />
+              <td>Opening balance</td>
+              <td />
+              <td />
+              <td className="text-right font-semibold">{formatAmount(st.opening)}</td>
+            </tr>
+            {st.rows.map((r, i) => (
+              <tr key={i} className="border-b border-gray-500">
+                <td className="py-0.5">{formatDate(String(r["date"]))}</td>
+                <td>
+                  {String(r["docNo"])} <span>{DOC_DEFS[String(r["type"]) as DocType]?.label}</span>
+                </td>
+                <td>{String(r["narration"] ?? "")}</td>
+                <td className="text-right">{formatAmount(Number(r["debit"]), true)}</td>
+                <td className="text-right">{formatAmount(Number(r["credit"]), true)}</td>
+                <td className="text-right">{formatAmount(Number(r["balance"]))}</td>
+              </tr>
+            ))}
+            <tr className="border-y-2 border-black font-bold">
+              <td colSpan={5} className="py-1">
+                Closing balance
+              </td>
+              <td className="text-right">{formatAmount(st.closing)}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="mt-6 text-xs">
+          Please report any discrepancy within 15 days of receiving this statement.
+        </p>
+      </div>
+    </PrintPage>
   );
 }

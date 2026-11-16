@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { MasterPage } from "@/components/masters/MasterPage";
 
 export const Route = createFileRoute("/_authenticated/transactions/expense-heads")({
-  head: () => ({ meta: [{ title: "Expense Heads – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Expense Heads – Turnkey Publishers" }] }),
   component: () => (
     <MasterPage
       entity="expenseHeads"

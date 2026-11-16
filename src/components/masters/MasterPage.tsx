@@ -1,5 +1,14 @@
-import { useState, type ReactNode } from "react";
-import { Plus, Pencil, Power, ClipboardList, CheckCircle2, Wallet } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import {
+  Plus,
+  Pencil,
+  Power,
+  ClipboardList,
+  CheckCircle2,
+  Wallet,
+  Tags,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, type Column } from "@/components/shared/DataTable";
@@ -9,6 +18,7 @@ import { Field, SelectField, TextAreaField, TextField } from "@/components/share
 import { SearchSelect } from "@/components/shared/SearchSelect";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +36,7 @@ import {
 } from "@/components/ui/select";
 import { errorText, useAction, useApi } from "@/lib/api";
 import { useSession } from "@/lib/session";
-import { useLookups } from "@/lib/lookups";
+import { useLookups, type Lookups } from "@/lib/lookups";
 import { formatAmount, formatDate, formatPKR, formatQty } from "@/lib/format";
 import {
   listMasters,
@@ -35,7 +45,15 @@ import {
   type MasterEntity,
 } from "@/server/functions/masters";
 import type { Permission } from "@/shared/permissions";
+import { AUTO_CODE_PREFIX, nextCode, type CategoryKind } from "@/shared/masters";
+import {
+  DISCOUNT_TYPES,
+  discountLabel,
+  parseCategoryDiscounts,
+  type CategoryDiscount,
+} from "@/shared/documents";
 import { useQueryClient } from "@tanstack/react-query";
+import { ManageCategories } from "./ManageCategories";
 
 export type Row = Record<string, string | number | boolean | null>;
 const s = (r: Row, k: string) => (r[k] === null || r[k] === undefined ? "" : String(r[k]));
@@ -52,8 +70,16 @@ export interface FieldDef {
     | "textarea"
     | "account"
     | "groupAccount"
-    | "checkbox";
+    | "checkbox"
+    /** A section title inside the form; not a value. */
+    | "heading"
+    /** Per book-category discount rows (stored as JSON). */
+    | "categoryDiscounts";
   options?: readonly string[];
+  /** Blank on a new record = next automatic code (shown as the placeholder). */
+  autoCode?: boolean;
+  /** Select from an editable category list (Manage categories) instead of fixed options. */
+  categoryKind?: CategoryKind;
   required?: boolean;
   /** Only shown/editable with this permission. */
   perm?: Permission;
@@ -85,6 +111,8 @@ export interface MasterPageProps {
   tabs?: (row: Row) => { id: string; label: string; content: ReactNode }[];
   filters?: { key: string; label: string }[];
   headerExtra?: ReactNode;
+  /** Category lists editable from this page's "Manage categories" button. */
+  categoryKinds?: CategoryKind[];
 }
 
 export function MasterPage({
@@ -100,6 +128,7 @@ export function MasterPage({
   tabs,
   filters = [],
   headerExtra,
+  categoryKinds = [],
 }: MasterPageProps) {
   const { can } = useSession();
   const q = useApi(["masters", entity], () => listMasters({ data: { entity } }));
@@ -107,6 +136,7 @@ export function MasterPage({
   const [viewing, setViewing] = useState<Row | null>(null);
   const [status, setStatus] = useState("Active");
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const [managing, setManaging] = useState(false);
   const toggle = useAction(
     (r: Row) =>
       setMasterStatus({ data: { entity, id: s(r, "id"), active: s(r, "status") !== "Active" } }),
@@ -196,10 +226,18 @@ export function MasterPage({
         crumbs={["Home", section, ...(section !== title ? [title] : [])]}
         actions={
           canEdit && (
-            <Button onClick={() => setEditing(null)}>
-              <Plus />
-              New {singular}
-            </Button>
+            <>
+              {categoryKinds.length > 0 && (
+                <Button variant="outline" onClick={() => setManaging(true)}>
+                  <Tags />
+                  Manage categories
+                </Button>
+              )}
+              <Button onClick={() => setEditing(null)}>
+                <Plus />
+                New {singular}
+              </Button>
+            </>
           )
         }
       />
@@ -220,7 +258,7 @@ export function MasterPage({
       </div>
       {headerExtra}
       <section className="card-surface space-y-4 p-4">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 print:hidden">
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className="w-40" aria-label="Status filter">
               <SelectValue />
@@ -269,6 +307,7 @@ export function MasterPage({
       {editing !== undefined && (
         <MasterForm
           entity={entity}
+          codes={all.map((r) => s(r, "code"))}
           singular={singular}
           fields={fields}
           record={editing}
@@ -276,6 +315,7 @@ export function MasterPage({
           onClose={() => setEditing(undefined)}
         />
       )}
+      {managing && <ManageCategories kinds={categoryKinds} onClose={() => setManaging(false)} />}
       {viewing && (
         <MasterView
           row={all.find((r) => r["id"] === viewing["id"]) ?? viewing}
@@ -298,6 +338,7 @@ export function MasterPage({
 
 function MasterForm({
   entity,
+  codes,
   singular,
   fields,
   record,
@@ -305,6 +346,7 @@ function MasterForm({
   onClose,
 }: {
   entity: MasterEntity;
+  codes: string[];
   singular: string;
   fields: FieldDef[];
   record: Row | null;
@@ -314,6 +356,8 @@ function MasterForm({
   const { can } = useSession();
   const { data: lk } = useLookups();
   const qc = useQueryClient();
+  const optionsFor = (f: FieldDef, current?: unknown) =>
+    f.categoryKind ? categoryOptions(lk, f.categoryKind, current) : (f.options ?? []);
   const [values, setValues] = useState<Row>(() =>
     record
       ? { ...record }
@@ -326,13 +370,27 @@ function MasterForm({
                 : f.type === "checkbox"
                   ? false
                   : f.type === "select"
-                    ? (f.options?.[0] ?? "")
+                    ? (optionsFor(f)[0] ?? "")
                     : "",
             ]),
           ),
           ...defaults,
         },
   );
+  // Category lists may arrive after the form opens: fill empty or no-longer-valid defaults then.
+  useEffect(() => {
+    if (record || !lk) return;
+    setValues((v) => {
+      let next = v;
+      for (const f of fields)
+        if (f.categoryKind) {
+          const opts = categoryOptions(lk, f.categoryKind);
+          if (opts.length && !opts.includes(String(v[f.key] ?? "")))
+            next = { ...next, [f.key]: opts[0]! };
+        }
+      return next; // same object when nothing changed, so no re-render loop
+    });
+  }, [lk, record, fields]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const set = (k: string, v: string | number | boolean | null) =>
@@ -344,7 +402,7 @@ function MasterForm({
     try {
       const payload = Object.fromEntries(
         fields
-          .filter((f) => !f.perm || can(f.perm))
+          .filter((f) => (!f.perm || can(f.perm)) && f.type !== "heading")
           .map((f) => [
             f.key,
             f.type === "number"
@@ -383,6 +441,22 @@ function MasterForm({
                 const locked = Boolean(record && f.lockWhen?.(record));
                 const v = values[f.key];
                 const cls = f.wide || f.type === "textarea" ? "sm:col-span-2" : "";
+                if (f.type === "heading")
+                  return (
+                    <h3 key={f.key} className="border-t pt-4 font-semibold text-navy sm:col-span-2">
+                      {f.label}
+                    </h3>
+                  );
+                if (f.type === "categoryDiscounts")
+                  return (
+                    <CategoryDiscountsField
+                      key={f.key}
+                      label={f.label}
+                      value={String(v ?? "")}
+                      categories={categoryOptions(lk, "productCategory")}
+                      onChange={(x) => set(f.key, x)}
+                    />
+                  );
                 if (f.type === "select")
                   return (
                     <SelectField
@@ -392,7 +466,7 @@ function MasterForm({
                       required={f.required}
                       disabled={locked}
                       value={String(v ?? "")}
-                      options={f.options ?? []}
+                      options={optionsFor(f, record?.[f.key])}
                       onChange={(x) => set(f.key, x)}
                     />
                   );
@@ -451,9 +525,14 @@ function MasterForm({
                     key={f.key}
                     className={cls}
                     label={f.label}
-                    required={f.required}
+                    required={f.required ?? (f.autoCode && Boolean(record))}
                     disabled={locked}
                     type={f.type ?? "text"}
+                    placeholder={
+                      f.autoCode && !record && entity in AUTO_CODE_PREFIX
+                        ? `Auto: ${nextCode(AUTO_CODE_PREFIX[entity as keyof typeof AUTO_CODE_PREFIX], codes)}`
+                        : undefined
+                    }
                     min={f.type === "number" ? 0 : undefined}
                     step={f.type === "number" ? "any" : undefined}
                     value={v as string | number}
@@ -484,6 +563,104 @@ function MasterForm({
   );
 }
 
+/** Editable rows of { book category, % or Rs, value }, kept as JSON text in the form values. */
+function CategoryDiscountsField({
+  label,
+  value,
+  categories,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  categories: string[];
+  onChange: (json: string) => void;
+}) {
+  const rows = parseCategoryDiscounts(value);
+  const save = (next: CategoryDiscount[]) => onChange(JSON.stringify(next));
+  const update = (i: number, patch: Partial<CategoryDiscount>) =>
+    save(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  const unused = categories.filter((c) => !rows.some((r) => r.category === c));
+  const pick = (aria: string, v: string, options: readonly string[], on: (x: string) => void) => (
+    <Select value={v} onValueChange={on}>
+      <SelectTrigger aria-label={aria}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((o) => (
+          <SelectItem key={o} value={o}>
+            {o}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+  return (
+    <div className="space-y-2 sm:col-span-2">
+      <p className="text-sm font-medium">{label}</p>
+      {rows.length > 0 && (
+        <div className="grid grid-cols-[1fr_9rem_8rem_2.25rem] gap-2 text-xs text-muted-foreground">
+          <span>Book category</span>
+          <span>Type</span>
+          <span>Value</span>
+        </div>
+      )}
+      {rows.map((r, i) => (
+        <div key={i} className="grid grid-cols-[1fr_9rem_8rem_2.25rem] gap-2">
+          {pick(
+            `Book category ${i + 1}`,
+            r.category,
+            [r.category, ...unused].filter(Boolean),
+            (c) => update(i, { category: c }),
+          )}
+          {pick(`Discount type ${i + 1}`, r.type, DISCOUNT_TYPES, (t) =>
+            update(i, { type: t as CategoryDiscount["type"] }),
+          )}
+          <Input
+            type="number"
+            min={0}
+            step="any"
+            aria-label={`${r.type === "Amount" ? "Rs per copy" : "Discount %"} ${i + 1}`}
+            placeholder={r.type === "Amount" ? "Rs/copy" : "%"}
+            value={r.value}
+            onChange={(e) =>
+              update(i, { value: e.target.value === "" ? 0 : Number(e.target.value) })
+            }
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`Remove ${r.category} discount`}
+            onClick={() => save(rows.filter((_, j) => j !== i))}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={!unused.length}
+        onClick={() => save([...rows, { category: unused[0]!, type: "Percentage", value: 0 }])}
+      >
+        <Plus />
+        Add category discount
+      </Button>
+    </div>
+  );
+}
+
+/** Active names of a category list, plus the record's current value if it was deactivated. */
+function categoryOptions(lk: Lookups | undefined, kind: CategoryKind, current?: unknown) {
+  const names = (lk?.categories ?? [])
+    .filter((c) => c.kind === kind && c.status === "Active")
+    .map((c) => c.name);
+  return typeof current === "string" && current && !names.includes(current)
+    ? [...names, current]
+    : names;
+}
+
 function MasterView({
   row,
   fields,
@@ -511,6 +688,12 @@ function MasterView({
         ? formatPKR(Number(v ?? 0))
         : formatQty(Number(v ?? 0));
     if (f.type === "date") return formatDate(String(v ?? ""));
+    if (f.type === "categoryDiscounts")
+      return (
+        parseCategoryDiscounts(v)
+          .map((d) => `${d.category}: ${discountLabel(d.type, d.value)}`)
+          .join(", ") || "—"
+      );
     if (f.type === "checkbox") return v ? "Yes" : "No";
     return v === null || v === "" || v === undefined ? "—" : String(v);
   };
@@ -569,11 +752,15 @@ function MasterView({
             )}
             <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
               {fields
-                .filter((f) => !f.perm || can(f.perm))
+                .filter((f) => (!f.perm || can(f.perm)) && f.type !== "heading")
                 .map((f) => (
                   <div
                     key={f.key}
-                    className={f.type === "textarea" ? "sm:col-span-2 lg:col-span-3" : ""}
+                    className={
+                      f.type === "textarea" || f.type === "categoryDiscounts"
+                        ? "sm:col-span-2 lg:col-span-3"
+                        : ""
+                    }
                   >
                     <dt className="text-xs text-muted-foreground">{f.label}</dt>
                     <dd className="break-words font-medium">{display(f)}</dd>

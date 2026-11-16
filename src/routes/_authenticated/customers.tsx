@@ -4,10 +4,10 @@ import { partyFields } from "@/components/masters/partyFields";
 import { PartyStatement } from "@/components/reports/Ledger";
 import { DocumentListInline } from "@/components/documents/DocumentListInline";
 import { formatPKR } from "@/lib/format";
-import { CUSTOMER_CATEGORIES } from "@/shared/masters";
+import { DISCOUNT_MODES, DISCOUNT_TYPES } from "@/shared/documents";
 
 export const Route = createFileRoute("/_authenticated/customers")({
-  head: () => ({ meta: [{ title: "Customers – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Customers – Turnkey Publishers" }] }),
   component: () => (
     <MasterPage
       entity="customers"
@@ -15,31 +15,62 @@ export const Route = createFileRoute("/_authenticated/customers")({
       section="Customers"
       singular="Customer"
       editPerm="customers.manage"
+      categoryKinds={["customerType", "customerLocation"]}
+      defaults={{ category: "School", location: "Karachi" }}
       fields={[
         ...partyFields,
         {
           key: "category",
-          label: "Category",
+          label: "Customer type",
           type: "select",
-          options: CUSTOMER_CATEGORIES,
+          categoryKind: "customerType",
+          required: true,
+        },
+        {
+          key: "location",
+          label: "Location",
+          type: "select",
+          categoryKind: "customerLocation",
           required: true,
         },
         { key: "creditLimit", label: "Credit limit (Rs, 0 = none)", type: "number" },
         { key: "notes", label: "Notes", type: "textarea" },
+        { key: "discountsHeading", label: "Customer discounts", type: "heading" },
+        {
+          key: "discountType",
+          label: "Default discount type",
+          type: "select",
+          options: DISCOUNT_TYPES,
+        },
+        { key: "discountValue", label: "Discount (% or Rs per copy)", type: "number" },
+        {
+          key: "discountMode",
+          label: "Sales discount",
+          type: "select",
+          options: DISCOUNT_MODES,
+        },
+        {
+          key: "categoryDiscounts",
+          label: "Book category discounts (override the default)",
+          type: "categoryDiscounts",
+        },
       ]}
       columns={[
         { key: "code", header: "Code" },
         { key: "name", header: "Name" },
-        { key: "category", header: "Category" },
+        { key: "category", header: "Type" },
+        { key: "location", header: "Location" },
         { key: "city", header: "City" },
         { key: "phone", header: "Phone" },
+        { key: "discount", header: "Discount" },
         { key: "balance", header: "Balance", kind: "money" },
         { key: "overdue", header: "Overdue", kind: "money" },
         { key: "creditLimit", header: "Credit limit", kind: "money" },
         { key: "status", header: "Status", kind: "status" },
       ]}
       filters={[
-        { key: "category", label: "Categories" },
+        { key: "category", label: "Types" },
+        { key: "location", label: "Locations" },
         { key: "city", label: "Cities" },
       ]}
       kpis={(rows) => {

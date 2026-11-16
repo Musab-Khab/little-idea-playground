@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ReportHeading, ReportHeadingContext } from "@/components/print/ReportHeading";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { DateRangeInputs, Field, SelectField, TextField } from "@/components/shared/Field";
 import { SearchSelect } from "@/components/shared/SearchSelect";
@@ -15,6 +16,7 @@ import {
   getComparative,
   getExpenseReport,
   getMonthlyManagement,
+  getMonthlyPack,
   getProductReport,
   getProfitLoss,
   getPurchaseReport,
@@ -23,7 +25,7 @@ import {
   getStockStatement,
   getTrialBalance,
 } from "@/server/functions/reports";
-import { CUSTOMER_CATEGORIES, PRODUCT_CATEGORIES, SUPPLIER_CATEGORIES } from "@/shared/masters";
+import type { CategoryKind } from "@/shared/masters";
 import { PartyStatement, usePeriod } from "./Ledger";
 
 type Row = Record<string, string | number | boolean | null>;
@@ -49,6 +51,12 @@ const text = (key: string, header: string): Column<Row> => ({
 });
 const sum = (rows: Row[], k: string) => rows.reduce((t, r) => t + Number(r[k] ?? 0), 0);
 
+/** All names in a category list (inactive ones too: old records may still use them). */
+function useCategoryNames(kind: CategoryKind) {
+  const { data: lk } = useLookups();
+  return (lk?.categories ?? []).filter((c) => c.kind === kind).map((c) => c.name);
+}
+
 function Loading({ error }: { error?: unknown }) {
   return (
     <p className="py-8 text-center text-muted-foreground">
@@ -68,20 +76,14 @@ function ReportFrame({
   controls?: ReactNode;
   children: ReactNode;
 }) {
-  const { data: lk } = useLookups();
   return (
     <div className="space-y-4">
       <div className="no-print flex flex-wrap items-end gap-3">{controls}</div>
-      <div className="print-area space-y-3">
-        <div className="hidden print:block">
-          <p className="text-lg font-bold">{lk?.company?.name}</p>
-          <p className="text-xs">
-            {lk?.company?.address} {lk?.company?.ntn ? `· NTN ${lk.company.ntn}` : ""}
-          </p>
-        </div>
-        <h2 className="text-xl font-bold text-navy">{title}</h2>
-        {period && <p className="text-sm text-muted-foreground">{period}</p>}
-        {children}
+      <div className="print-area report-print space-y-3">
+        <ReportHeading title={title} period={period} />
+        <h2 className="text-xl font-bold text-navy print:hidden">{title}</h2>
+        {period && <p className="text-sm text-muted-foreground print:hidden">{period}</p>}
+        <ReportHeadingContext.Provider value={true}>{children}</ReportHeadingContext.Provider>
       </div>
     </div>
   );
@@ -91,7 +93,10 @@ function TotalsBar({ items }: { items: [string, number][] }) {
   return (
     <div className="flex flex-wrap gap-3">
       {items.map(([k, v]) => (
-        <div key={k} className="rounded-lg border bg-muted/30 px-4 py-2">
+        <div
+          key={k}
+          className="rounded-lg border bg-muted/30 px-4 py-2 print:rounded-none print:border-0 print:bg-transparent print:px-0 print:py-0 print:pr-6"
+        >
           <p className="text-xs text-muted-foreground">{k}</p>
           <p className="font-bold tabular-nums text-navy">{formatPKR(v)}</p>
         </div>
@@ -367,7 +372,7 @@ export function AgeingReport({ partyType }: { partyType: "customer" | "supplier"
     { enabled: p.ready },
   );
   const rows = q.data ?? [];
-  const cats = partyType === "customer" ? CUSTOMER_CATEGORIES : SUPPLIER_CATEGORIES;
+  const cats = useCategoryNames(partyType === "customer" ? "customerType" : "supplierCategory");
   const title =
     partyType === "customer"
       ? "Customer Outstanding & Ageing"
@@ -474,6 +479,7 @@ export function StatementReport({ partyType }: { partyType: "customer" | "suppli
 /* --------------------------------------------------------------- stock */
 
 export function StockStatementReport({ title = "Stock Statement" }: { title?: string }) {
+  const productCats = useCategoryNames("productCategory");
   const p = usePeriod();
   const [category, setCategory] = useState("All");
   const q = useApi(
@@ -497,7 +503,7 @@ export function StockStatementReport({ title = "Stock Statement" }: { title?: st
             className="w-48"
             value={category}
             onChange={setCategory}
-            options={["All", ...PRODUCT_CATEGORIES]}
+            options={["All", ...productCats]}
           />
         </>
       }
@@ -937,6 +943,194 @@ export function MonthlyManagementReport() {
           />
         </div>
       )}
+    </ReportFrame>
+  );
+}
+
+/* ------------------------------------------- the six monthly reports */
+
+export type PackReportKind =
+  "receipts" | "salesByProduct" | "salesByCustomer" | "receivables" | "expenses" | "inventory";
+
+const dmy = (key: string, header: string): Column<Row> => ({
+  key,
+  header,
+  value: (r) => s(r, key),
+  render: (r) => s(r, key).split("-").reverse().join("-"),
+});
+
+const PACK_REPORTS: Record<
+  PackReportKind,
+  { title: string; columns: Column<Row>[]; totals: string[]; label: string }
+> = {
+  receipts: {
+    title: "Receivings",
+    label: "Total received",
+    columns: [
+      dmy("date", "Date"),
+      text("customer", "Customer"),
+      text("description", "Description"),
+      money("amount", "Amount"),
+    ],
+    totals: ["amount"],
+  },
+  salesByProduct: {
+    title: "Sales Report Product Wise",
+    label: "Net sales",
+    columns: [
+      text("code", "Code"),
+      text("name", "Product"),
+      text("category", "Category"),
+      qty("qty", "Qty"),
+      money("amount", "Amount"),
+    ],
+    totals: ["qty", "amount"],
+  },
+  salesByCustomer: {
+    title: "Sales Report Customer Wise",
+    label: "Net sales",
+    columns: [
+      text("customer", "Customer"),
+      qty("invoices", "Invoices"),
+      qty("qty", "Qty"),
+      money("amount", "Amount"),
+    ],
+    totals: ["invoices", "qty", "amount"],
+  },
+  receivables: {
+    title: "Receivables",
+    label: "Total receivable",
+    columns: [
+      text("customer", "Customer"),
+      text("phone", "Phone"),
+      money("opening", "Opening"),
+      money("debits", "Sales / Debits"),
+      money("credits", "Received / Credits"),
+      money("closing", "Balance"),
+    ],
+    totals: ["opening", "debits", "credits", "closing"],
+  },
+  expenses: {
+    title: "Expense Report",
+    label: "Total expenses",
+    columns: [
+      dmy("date", "Date"),
+      text("head", "Expense Head"),
+      text("description", "Description"),
+      text("method", "Paid by"),
+      money("amount", "Amount"),
+    ],
+    totals: ["amount"],
+  },
+  inventory: {
+    title: "Inventory Report",
+    label: "Closing stock (copies)",
+    columns: [
+      text("code", "Code"),
+      text("name", "Product"),
+      text("category", "Category"),
+      qty("opening", "Opening"),
+      qty("qtyIn", "Received"),
+      qty("qtyOut", "Issued"),
+      qty("closing", "Closing"),
+    ],
+    totals: ["opening", "qtyIn", "qtyOut", "closing"],
+  },
+};
+
+/** One of the six month-end reports (Receivings, Sales by product/customer, Receivables, Expenses, Inventory). */
+export function PackReport({ kind }: { kind: PackReportKind }) {
+  const p = usePeriod();
+  const def = PACK_REPORTS[kind];
+  const q = useApi(
+    ["monthly-pack", p.from, p.to],
+    () => getMonthlyPack({ data: { from: p.from, to: p.to } }),
+    { enabled: p.ready },
+  );
+  const rows = (q.data?.[kind] ?? []) as Row[];
+  const main = def.totals[def.totals.length - 1]!;
+  const isQty = kind === "inventory";
+  return (
+    <ReportFrame
+      title={def.title}
+      period={`${formatDate(p.from)} to ${formatDate(p.to)}`}
+      controls={<DateRangeInputs from={p.from} to={p.to} onChange={p.setRange} />}
+    >
+      {!q.data ? (
+        <Loading error={q.error} />
+      ) : (
+        <>
+          <p className="text-sm print:hidden">
+            {def.label}:{" "}
+            <b className="text-navy">
+              {isQty ? formatQty(sum(rows, main)) : formatPKR(sum(rows, main))}
+            </b>{" "}
+            · {rows.length} {rows.length === 1 ? "line" : "lines"}
+          </p>
+          <DataTable
+            rows={rows}
+            pageSize={100}
+            exportName={kind}
+            exportTitle={`${def.title} ${p.from} to ${p.to}`}
+            columns={def.columns}
+            footer={
+              rows.length > 0 && (
+                <tr>
+                  {def.columns.map((c, i) => (
+                    <td
+                      key={c.key}
+                      className={c.align === "right" ? "py-2 text-right tabular-nums" : "py-2"}
+                    >
+                      {i === 0
+                        ? "Total"
+                        : !def.totals.includes(c.key)
+                          ? ""
+                          : isQty || c.key === "qty" || c.key === "invoices"
+                            ? formatQty(sum(rows, c.key))
+                            : formatAmount(sum(rows, c.key))}
+                    </td>
+                  ))}
+                </tr>
+              )
+            }
+          />
+        </>
+      )}
+    </ReportFrame>
+  );
+}
+
+/** Prints the month-end pack (cover + receivings, sales, receivables, expenses, inventory). */
+export function MonthlyPackReport() {
+  const p = usePeriod();
+  const [month, setMonth] = useState<string | null>(null);
+  const m = month ?? p.to.slice(0, 7);
+  const from = `${m}-01`;
+  const to = new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.slice(5, 7)), 0))
+    .toISOString()
+    .slice(0, 10);
+  return (
+    <ReportFrame
+      title="Monthly Report Pack"
+      period={`${formatDate(from)} – ${formatDate(to)}`}
+      controls={
+        <>
+          <TextField label="Month" type="month" value={m} onChange={setMonth} />
+          <Button
+            onClick={() =>
+              window.open(`/print/monthly-pack?from=${from}&to=${to}`, "_blank", "noopener")
+            }
+          >
+            Print monthly pack
+          </Button>
+        </>
+      }
+    >
+      <p className="text-sm text-muted-foreground">
+        Prints a cover page and six reports for the month, each on its own page: Receivings, Sales
+        Report Product Wise, Sales Report Customer Wise, Receivables, Expense Report and Inventory
+        Report.
+      </p>
     </ReportFrame>
   );
 }

@@ -104,7 +104,7 @@ async function decryptTo(src: string, dest: string) {
   readSync(fd, tag, 0, 16, size - 16);
   closeSync(fd);
   if (!head.subarray(0, MAGIC.length).equals(MAGIC))
-    throw new Error("Not an MFAHH encrypted backup.");
+    throw new Error("Not a Turnkey Publishers encrypted backup file.");
   const salt = head.subarray(MAGIC.length, MAGIC.length + 16),
     iv = head.subarray(MAGIC.length + 16);
   const decipher = createDecipheriv("aes-256-gcm", key(salt), iv);

@@ -48,7 +48,8 @@ export type ColKey =
   | "qty"
   | "narration"
   | "condition"
-  | "loanType";
+  | "loanType"
+  | "counterparty";
 
 const COLS: Record<ColKey, Column<Row>> = {
   docNo: {
@@ -64,6 +65,11 @@ const COLS: Record<ColKey, Column<Row>> = {
     render: (r) => <span className="whitespace-nowrap">{formatDate(s(r, "date"))}</span>,
   },
   party: { key: "party", header: "Party", value: (r) => s(r, "partyName") },
+  counterparty: {
+    key: "counterparty",
+    header: "Paid to / Received from",
+    value: (r) => s(r, "partyName") || s(r, "expenseHead"),
+  },
   reference: { key: "reference", header: "Reference", value: (r) => s(r, "reference") },
   total: {
     key: "total",
@@ -249,7 +255,7 @@ export function DocumentListPage({
       </div>
       {extraHeader}
       <section className="card-surface space-y-4 p-4">
-        <div className="flex flex-wrap items-end gap-3">
+        <div className="flex flex-wrap items-end gap-3 print:hidden">
           <DateRangeInputs
             from={from}
             to={to}

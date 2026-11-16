@@ -10,6 +10,8 @@ import {
   ComparativeReport,
   ExpenseReport,
   MonthlyManagementReport,
+  MonthlyPackReport,
+  PackReport,
   ProductReport,
   ProfitLossReport,
   PurchaseReport,
@@ -22,6 +24,48 @@ import {
 import { cn } from "@/lib/utils";
 
 const REPORTS: { id: string; group: string; title: string; render: () => ReactNode }[] = [
+  {
+    id: "receiving",
+    group: "Monthly Reports",
+    title: "1. Receiving",
+    render: () => <PackReport key="receipts" kind="receipts" />,
+  },
+  {
+    id: "sales-product",
+    group: "Monthly Reports",
+    title: "2. Sales Report Product Wise",
+    render: () => <PackReport key="salesByProduct" kind="salesByProduct" />,
+  },
+  {
+    id: "sales-customer",
+    group: "Monthly Reports",
+    title: "3. Sales Report Customer Wise",
+    render: () => <PackReport key="salesByCustomer" kind="salesByCustomer" />,
+  },
+  {
+    id: "receivables",
+    group: "Monthly Reports",
+    title: "4. Receivables",
+    render: () => <PackReport key="receivables" kind="receivables" />,
+  },
+  {
+    id: "expense",
+    group: "Monthly Reports",
+    title: "5. Expense Report",
+    render: () => <PackReport key="expenses" kind="expenses" />,
+  },
+  {
+    id: "inventory",
+    group: "Monthly Reports",
+    title: "6. Inventory Report",
+    render: () => <PackReport key="inventory" kind="inventory" />,
+  },
+  {
+    id: "pack",
+    group: "Monthly Reports",
+    title: "Print all (Monthly Pack)",
+    render: () => <MonthlyPackReport />,
+  },
   {
     id: "pl",
     group: "Financial statements",
@@ -118,7 +162,7 @@ const REPORTS: { id: string; group: string; title: string; render: () => ReactNo
 
 export const Route = createFileRoute("/_authenticated/reports")({
   validateSearch: z.object({ r: z.string().optional() }),
-  head: () => ({ meta: [{ title: "Reports – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Reports – Turnkey Publishers" }] }),
   component: ReportsHub,
 });
 
@@ -130,7 +174,7 @@ function ReportsHub() {
   return (
     <div className="space-y-5">
       <PageHeader title="Reports" crumbs={["Home", "Reports", current.title]} />
-      <div className="grid gap-5 lg:grid-cols-[240px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[240px_1fr] print:block">
         <nav className="no-print card-surface h-fit space-y-4 p-3">
           {groups.map((g) => (
             <div key={g}>

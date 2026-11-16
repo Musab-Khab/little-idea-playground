@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { BookOpen, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { navItems, allowed } from "@/lib/nav";
 import { useSession } from "@/lib/session";
 import { useLookups } from "@/lib/lookups";
@@ -18,14 +18,16 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <aside className="no-print bg-sidebar-gradient flex h-full w-64 flex-col text-sidebar-foreground">
       <div className="flex items-center gap-3 border-b border-sidebar-border px-5 py-5">
-        <span className="grid size-10 place-items-center rounded-xl bg-sidebar-accent">
-          <BookOpen className="size-5" />
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white p-1">
+          <img src="/brand/turnkey-mark.png" alt="" className="size-full object-contain" />
         </span>
         <div className="leading-tight">
-          <p className="text-[10px] font-semibold uppercase tracking-widest opacity-70">
+          <p className="text-lg font-extrabold tracking-wide">
             {lookups?.company?.name ?? "Turnkey Publishers"}
           </p>
-          <p className="text-xl font-extrabold tracking-wide">MFAHH</p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest opacity-70">
+            Accounts &amp; Inventory
+          </p>
         </div>
       </div>
 

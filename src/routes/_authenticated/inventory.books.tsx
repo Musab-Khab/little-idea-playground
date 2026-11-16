@@ -3,10 +3,9 @@ import { MasterPage } from "@/components/masters/MasterPage";
 import { StockMovement } from "@/components/reports/Ledger";
 import { PriceHistory } from "@/components/masters/PriceHistory";
 import { formatPKR } from "@/lib/format";
-import { PRODUCT_CATEGORIES } from "@/shared/masters";
 
 export const Route = createFileRoute("/_authenticated/inventory/books")({
-  head: () => ({ meta: [{ title: "Books & Products – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Books & Products – Turnkey Publishers" }] }),
   component: () => (
     <MasterPage
       entity="products"
@@ -14,6 +13,8 @@ export const Route = createFileRoute("/_authenticated/inventory/books")({
       section="Inventory"
       singular="Book / Product"
       editPerm="books.manage"
+      categoryKinds={["productCategory"]}
+      defaults={{ category: "Textbook" }}
       fields={[
         { key: "code", label: "Book code / SKU", required: true },
         { key: "name", label: "Title", required: true },
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/inventory/books")({
           key: "category",
           label: "Category",
           type: "select",
-          options: PRODUCT_CATEGORIES,
+          categoryKind: "productCategory",
           required: true,
         },
         { key: "subject", label: "Subject" },

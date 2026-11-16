@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { exportExcel, exportPdf } from "@/services/exportService";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ReportHeading, splitTitle, useInReport } from "@/components/print/ReportHeading";
+
+/** Columns that are controls, not data: left out of exports and prints. */
+const CONTROL_HEADERS = ["", "Actions", "Decision", "Action"];
 
 export interface Column<T> {
   key: string;
@@ -47,6 +51,13 @@ export function DataTable<T>({
   const [sort, setSort] = useState<{ key: string; dir: 1 | -1 } | null>(null);
   const [page, setPage] = useState(0);
   const canExport = useCanExport();
+  const inReport = useInReport();
+  // Standalone tables print their own heading; the page title is the fallback.
+  const [printTitle, setPrintTitle] = useState(exportTitle ?? "");
+  const print = () => {
+    if (!exportTitle) setPrintTitle(document.title.replace(/\s+–\s+Turnkey Publishers$/, ""));
+    setTimeout(() => window.print(), 50);
+  };
 
   const filtered = useMemo(() => {
     const term = q.toLowerCase();
@@ -72,9 +83,7 @@ export function DataTable<T>({
 
   const download = async (kind: "excel" | "pdf") => {
     try {
-      const visible = columns.filter(
-        (c) => c.header && !["Actions", "Decision", "Action"].includes(c.header),
-      );
+      const visible = columns.filter((c) => !CONTROL_HEADERS.includes(c.header));
       const headers = visible.map((c) => c.header);
       const data = filtered.map((r) => visible.map((c) => c.value(r)));
       await (kind === "excel"
@@ -85,8 +94,14 @@ export function DataTable<T>({
     }
   };
 
+  const heading = splitTitle(printTitle);
+  const hideInPrint = (c: Column<T>) => CONTROL_HEADERS.includes(c.header) && "print:hidden";
+
   return (
-    <div>
+    <div className={cn(!inReport && "report-print")}>
+      {!inReport && !compact && printTitle && (
+        <ReportHeading title={heading.title} period={heading.period} />
+      )}
       {!compact && (
         <div className="no-print mb-3 flex flex-wrap items-center gap-2">
           <div className="relative min-w-48 flex-1">
@@ -113,7 +128,7 @@ export function DataTable<T>({
                 <Download className="size-4" />
                 PDF
               </Button>
-              <Button variant="outline" size="sm" onClick={() => window.print()}>
+              <Button variant="outline" size="sm" onClick={print}>
                 <Printer className="size-4" />
                 Print
               </Button>
@@ -128,7 +143,11 @@ export function DataTable<T>({
               {columns.map((c) => (
                 <th
                   key={c.key}
-                  className={cn("py-2 pr-3 font-semibold", c.align === "right" && "text-right")}
+                  className={cn(
+                    "py-2 pr-3 font-semibold",
+                    c.align === "right" && "text-right",
+                    hideInPrint(c),
+                  )}
                 >
                   <button
                     className="inline-flex items-center gap-1"
@@ -140,18 +159,23 @@ export function DataTable<T>({
                     }
                   >
                     {c.header}
-                    {!compact && c.header && <ArrowUpDown className="size-3 opacity-50" />}
+                    {!compact && c.header && (
+                      <ArrowUpDown className="size-3 opacity-50 print:hidden" />
+                    )}
                   </button>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {view.map((row, i) => (
+            {(compact ? view : filtered).map((row, i) => (
               <tr
                 key={i}
                 className={cn(
                   "border-b border-border/60 last:border-0",
+                  !compact &&
+                    (i < currentPage * pageSize || i >= (currentPage + 1) * pageSize) &&
+                    "hidden print:table-row",
                   onRowClick && "cursor-pointer hover:bg-muted/50",
                 )}
                 onClick={
@@ -165,7 +189,11 @@ export function DataTable<T>({
                 {columns.map((c) => (
                   <td
                     key={c.key}
-                    className={cn("py-2.5 pr-3", c.align === "right" && "text-right tabular-nums")}
+                    className={cn(
+                      "py-2.5 pr-3",
+                      c.align === "right" && "text-right tabular-nums",
+                      hideInPrint(c),
+                    )}
                   >
                     {c.render ? c.render(row) : c.value(row)}
                   </td>

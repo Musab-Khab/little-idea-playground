@@ -19,6 +19,7 @@ import { formatAmount, formatDate, formatPKR } from "@/lib/format";
 import {
   addDays,
   DOC_DEFS,
+  discountFor,
   docTotals,
   lineAmount,
   round2,
@@ -141,7 +142,7 @@ export function DocumentEditor({ type, id, initial, onClose, onSaved }: EditorPr
     .map((p) => ({ value: p.id, label: p.name, hint: p.code }));
 
   const totals = docTotals(
-    lines as { qty: number; rate: number; discountPct: number }[],
+    lines as { qty: number; rate: number; discountPct: number; discountAmt: number }[],
     h.discount ?? 0,
     h.taxPct ?? 0,
   );
@@ -203,6 +204,15 @@ export function DocumentEditor({ type, id, initial, onClose, onSaved }: EditorPr
                         : {}),
                     }));
                     if (["SR", "PR", "SMR"].includes(type)) setLines([]);
+                    if (type === "SO" || type === "SI") {
+                      const cust = lk.customers.find((c) => c.id === v);
+                      setLines((ls) =>
+                        ls.map((l) => {
+                          const prod = products.find((x) => x.id === l.productId);
+                          return cust && prod ? { ...l, ...discountFor(cust, prod.category) } : l;
+                        }),
+                      );
+                    }
                     setAlloc({});
                   }}
                 />
@@ -293,15 +303,27 @@ export function DocumentEditor({ type, id, initial, onClose, onSaved }: EditorPr
                     />
                   </>
                 ) : type === "EXP" ? (
-                  <Field label="Expense head *">
-                    <SearchSelect
-                      options={lk.expenseHeads
-                        .filter((x) => x.status === "Active")
-                        .map((x) => ({ value: x.id, label: x.name }))}
-                      value={h.expenseHeadId}
-                      onChange={(v) => set("expenseHeadId", v)}
+                  <>
+                    <Field label="Expense head *">
+                      <SearchSelect
+                        options={lk.expenseHeads
+                          .filter((x) => x.status === "Active")
+                          .map((x) => ({ value: x.id, label: x.name }))}
+                        value={h.expenseHeadId}
+                        onChange={(v) => set("expenseHeadId", v)}
+                      />
+                    </Field>
+                    <TextField
+                      label="Paid to"
+                      value={String(extra("paidTo"))}
+                      onChange={(v) => setExtra("paidTo", v)}
                     />
-                  </Field>
+                    <TextField
+                      label="Department"
+                      value={String(extra("department"))}
+                      onChange={(v) => setExtra("department", v)}
+                    />
+                  </>
                 ) : null
               }
               showAmount={type !== "SALPAY"}
@@ -362,6 +384,11 @@ export function DocumentEditor({ type, id, initial, onClose, onSaved }: EditorPr
               priced={type !== "SMP"}
               costBased={type === "PI"}
               fromOrder={Boolean(h.refDocId)}
+              customer={
+                type === "SO" || type === "SI"
+                  ? lk.customers.find((c) => c.id === h.partyId)
+                  : undefined
+              }
             />
           )}
           {type === "PI" && (h.kind === "Material" || h.kind === "Service") && (
@@ -610,6 +637,7 @@ function ProductLines({
   priced,
   costBased,
   fromOrder,
+  customer,
 }: {
   lines: EditorLine[];
   setLine: (k: string, p: Partial<EditorLine>) => void;
@@ -620,7 +648,11 @@ function ProductLines({
   priced: boolean;
   costBased: boolean;
   fromOrder: boolean;
+  /** Sales documents: the customer whose discounts fill each line. */
+  customer?: Lookups["customers"][number];
 }) {
+  const sales = customer !== undefined;
+  const fixed = customer?.discountMode === "Fixed";
   return (
     <Section
       title="Books / products"
@@ -642,6 +674,7 @@ function ProductLines({
               <>
                 <th className={`${th} w-32`}>Rate</th>
                 <th className={`${th} w-24`}>Disc %</th>
+                {sales && <th className={`${th} w-28`}>Rs off/copy</th>}
                 <th className={`${th} w-32 text-right`}>Amount</th>
               </>
             )}
@@ -666,6 +699,7 @@ function ProductLines({
                         setLine(l.key, {
                           productId: v,
                           rate: costBased ? (prod?.costPrice ?? 0) : (prod?.salePrice ?? 0),
+                          ...(customer && prod ? discountFor(customer, prod.category) : {}),
                         });
                       }}
                     />
@@ -706,10 +740,26 @@ function ProductLines({
                         max={100}
                         step="0.01"
                         aria-label="Discount %"
+                        disabled={fixed}
+                        title={fixed ? "Fixed by the customer's discount settings" : undefined}
                         value={l.discountPct ?? ""}
                         onChange={(e) => setLine(l.key, { discountPct: num(e.target.value) })}
                       />
                     </td>
+                    {sales && (
+                      <td className={td}>
+                        <Input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          aria-label="Discount Rs per copy"
+                          disabled={fixed}
+                          title={fixed ? "Fixed by the customer's discount settings" : undefined}
+                          value={l.discountAmt ?? ""}
+                          onChange={(e) => setLine(l.key, { discountAmt: num(e.target.value) })}
+                        />
+                      </td>
+                    )}
                     <td className={`${td} pt-3 text-right tabular-nums`}>
                       {formatAmount(lineAmount(l))}
                     </td>
@@ -731,6 +781,11 @@ function ProductLines({
           })}
         </tbody>
       </table>
+      {fixed && (
+        <p className="px-3 pb-2 text-xs text-muted-foreground">
+          {customer.name} has fixed discounts; they are applied automatically.
+        </p>
+      )}
     </Section>
   );
 }
@@ -895,6 +950,7 @@ function ReturnLines({
                 <>
                   <td className={`${td} pt-3 tabular-nums`}>
                     {formatAmount(l.rate)}
+                    {l.discountAmt ? ` less Rs ${formatAmount(l.discountAmt)}` : ""}
                     {l.discountPct ? ` less ${l.discountPct}%` : ""}
                   </td>
                   <td className={`${td} pt-3 text-right tabular-nums`}>
@@ -1642,6 +1698,7 @@ function OrderPicker({
             remaining: Number(l["remaining"]),
             rate: Number(l["rate"]),
             discountPct: Number(l["discountPct"]),
+            discountAmt: Number(l["discountAmt"] ?? 0),
           })),
         );
       }}
@@ -1689,6 +1746,7 @@ function ReturnSource({
             remaining: Number(l["remaining"]),
             rate: Number(l["rate"]),
             discountPct: Number(l["discountPct"]),
+            discountAmt: Number(l["discountAmt"] ?? 0),
           })),
         );
       }}

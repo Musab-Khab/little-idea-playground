@@ -48,7 +48,7 @@ async function main() {
     await step("admin creates customer and book", async () => {
       await admin.goto(`${BASE}/customers`);
       await admin.getByRole("button", { name: "New Customer" }).click();
-      await admin.getByLabel("Code *").fill(`C-${run}`);
+      await admin.getByLabel("Code", { exact: true }).fill(`C-${run}`);
       await admin.getByLabel("Name *").fill(CUSTOMER);
       await admin.getByLabel("Credit period (days)").fill("30");
       await admin.getByRole("dialog").getByRole("button", { name: "Save" }).click();

@@ -11,11 +11,10 @@ import { errorText } from "@/lib/api";
 import { useLookups } from "@/lib/lookups";
 import { useSession } from "@/lib/session";
 import { importMasters, importOpeningBalances } from "@/server/functions/imports";
-import { CUSTOMER_CATEGORIES, PRODUCT_CATEGORIES, SUPPLIER_CATEGORIES } from "@/shared/masters";
 import type { Permission } from "@/shared/permissions";
 
 export const Route = createFileRoute("/_authenticated/settings/data-import")({
-  head: () => ({ meta: [{ title: "Data Import – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Data Import – Turnkey Publishers" }] }),
   component: DataImport,
 });
 
@@ -36,6 +35,7 @@ const TEMPLATES: Record<
       "email",
       "address",
       "city",
+      "location",
       "ntn",
       "creditDays",
       "creditLimit",
@@ -49,11 +49,12 @@ const TEMPLATES: Record<
       "",
       "Urdu Bazar",
       "Karachi",
+      "Karachi",
       "",
       30,
       400000,
     ],
-    note: `Category: ${CUSTOMER_CATEGORIES.join(", ")}`,
+    note: "category = a customer type and location = a customer location from Customers → Manage categories (blank location = Karachi).",
   },
   suppliers: {
     label: "Suppliers / vendors",
@@ -82,7 +83,7 @@ const TEMPLATES: Record<
       "1234567-8",
       30,
     ],
-    note: `Category: ${SUPPLIER_CATEGORIES.join(", ")}`,
+    note: "category = a supplier category from Suppliers → Manage categories.",
   },
   products: {
     label: "Books & products",
@@ -111,7 +112,7 @@ const TEMPLATES: Record<
       250,
       50,
     ],
-    note: `Category: ${PRODUCT_CATEGORIES.join(", ")}. Opening stock is imported separately as opening balances.`,
+    note: "category = a book category from Books & Products → Manage categories. Opening stock is imported separately as opening balances.",
   },
   opening: {
     label: "Opening balances",

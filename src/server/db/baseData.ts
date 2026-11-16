@@ -1,12 +1,14 @@
 /**
  * Reference data every installation needs: company row, roles, chart of accounts with the
- * system accounts the posting engine relies on, expense heads, leave types and a financial year.
+ * system accounts the posting engine relies on, expense heads, leave types, category lists
+ * and a financial year.
  * Idempotent: existing rows are left untouched.
  */
 import { eq } from "drizzle-orm";
 import type { DB } from "./client";
 import * as t from "./schema";
 import { DEFAULT_ROLES } from "@/shared/permissions";
+import { CATEGORY_KIND_KEYS, DEFAULT_CATEGORIES } from "@/shared/masters";
 import type { AccountType } from "./schema";
 
 type Acc = {
@@ -213,6 +215,10 @@ export async function seedBaseData(db: DB, today: string) {
     ] as const) {
       await tx.insert(t.leaveTypes).values({ name, daysPerYear: days }).onConflictDoNothing();
     }
+
+    for (const kind of CATEGORY_KIND_KEYS)
+      for (const name of DEFAULT_CATEGORIES[kind])
+        await tx.insert(t.categories).values({ kind, name }).onConflictDoNothing();
 
     const fy = fyFor(today);
     await tx.insert(t.financialYears).values(fy).onConflictDoNothing();

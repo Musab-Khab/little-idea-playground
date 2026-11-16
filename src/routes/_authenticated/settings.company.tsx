@@ -8,7 +8,7 @@ import { useAction, useApi } from "@/lib/api";
 import { getCompany, listRoles, saveCompany } from "@/server/functions/admin";
 
 export const Route = createFileRoute("/_authenticated/settings/company")({
-  head: () => ({ meta: [{ title: "Company Settings – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Company Settings – Turnkey Publishers" }] }),
   component: CompanySettings,
 });
 

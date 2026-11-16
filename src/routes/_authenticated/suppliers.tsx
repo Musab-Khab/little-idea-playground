@@ -4,10 +4,9 @@ import { partyFields } from "@/components/masters/partyFields";
 import { PartyStatement } from "@/components/reports/Ledger";
 import { DocumentListInline } from "@/components/documents/DocumentListInline";
 import { formatPKR } from "@/lib/format";
-import { SUPPLIER_CATEGORIES } from "@/shared/masters";
 
 export const Route = createFileRoute("/_authenticated/suppliers")({
-  head: () => ({ meta: [{ title: "Suppliers & Vendors – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Suppliers & Vendors – Turnkey Publishers" }] }),
   component: () => (
     <MasterPage
       entity="suppliers"
@@ -15,13 +14,14 @@ export const Route = createFileRoute("/_authenticated/suppliers")({
       section="Suppliers"
       singular="Supplier"
       editPerm="suppliers.manage"
+      categoryKinds={["supplierCategory"]}
       fields={[
         ...partyFields,
         {
           key: "category",
           label: "Category",
           type: "select",
-          options: SUPPLIER_CATEGORIES,
+          categoryKind: "supplierCategory",
           required: true,
         },
         { key: "notes", label: "Payment terms / notes", type: "textarea" },

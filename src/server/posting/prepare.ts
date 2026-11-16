@@ -10,6 +10,7 @@ import { fail, fyForDate } from "./context";
 import {
   addDays,
   DOC_DEFS,
+  discountFor,
   docTotals,
   lineAmount,
   round2,
@@ -30,6 +31,7 @@ export const lineInputSchema = z.object({
   qty: z.number().int().min(-1e7).max(1e7).optional(),
   rate: money.optional(),
   discountPct: z.number().min(0).max(100).optional(),
+  discountAmt: money.optional(),
   debit: money.optional(),
   credit: money.optional(),
   refLineId: uuid.nullish(),
@@ -219,6 +221,7 @@ export async function prepareDocument(
         tx,
         items.map((l) => l.productId),
       );
+      const cust = input.type === "SMP" ? null : (party as typeof t.customers.$inferSelect);
       let soLines = new Map<string, LineRow>();
       if (input.type === "SI" && input.refDocId) {
         const so = await refDoc(tx, input.refDocId, "SO", header.partyId);
@@ -230,7 +233,12 @@ export async function prepareDocument(
         const qty = l.qty ?? 0;
         if (qty <= 0) fail(`Line ${i + 1}: quantity must be a positive whole number.`);
         const rate = input.type === "SMP" ? 0 : (l.rate ?? p.salePrice);
-        const discountPct = input.type === "SMP" ? 0 : (l.discountPct ?? 0);
+        let discountPct = l.discountPct ?? 0;
+        let discountAmt = l.discountAmt ?? 0;
+        if (input.type === "SMP") [discountPct, discountAmt] = [0, 0];
+        else if (cust?.discountMode === "Fixed")
+          ({ discountPct, discountAmt } = discountFor(cust, p.category));
+        if (discountAmt > rate) fail(`Line ${i + 1}: the discount is more than the rate.`);
         if (l.refLineId) {
           const so =
             soLines.get(l.refLineId) ?? fail(`Line ${i + 1}: not part of the selected order.`);
@@ -247,7 +255,8 @@ export async function prepareDocument(
           qty,
           rate,
           discountPct,
-          amount: lineAmount({ qty, rate, discountPct }),
+          discountAmt,
+          amount: lineAmount({ qty, rate, discountPct, discountAmt }),
           refLineId: l.refLineId ?? null,
         };
       });
@@ -266,7 +275,7 @@ export async function prepareDocument(
       const discount = input.discount ?? 0;
       const taxPct = input.taxPct ?? 0;
       const totals = docTotals(
-        lines as { qty: number; rate: number; discountPct: number }[],
+        lines as { qty: number; rate: number; discountPct: number; discountAmt: number }[],
         discount,
         taxPct,
       );
@@ -278,8 +287,7 @@ export async function prepareDocument(
         taxAmount: totals.taxAmount,
         total: totals.total,
       });
-      if (input.type === "SI") {
-        const cust = party as typeof t.customers.$inferSelect;
+      if (input.type === "SI" && cust) {
         header.dueDate = input.dueDate ?? addDays(input.date, cust.creditDays);
         if (cust.creditLimit > 0) {
           const bal = await partyBalance(tx, "customer", cust.id);
@@ -319,7 +327,13 @@ export async function prepareDocument(
           qty,
           rate: o.rate,
           discountPct: o.discountPct,
-          amount: lineAmount({ qty, rate: o.rate, discountPct: o.discountPct }),
+          discountAmt: o.discountAmt,
+          amount: lineAmount({
+            qty,
+            rate: o.rate,
+            discountPct: o.discountPct,
+            discountAmt: o.discountAmt,
+          }),
           refLineId: o.id,
         };
       });
@@ -337,7 +351,7 @@ export async function prepareDocument(
         const discount =
           orig.doc.subtotal > 0 ? round2((orig.doc.discount * sub) / orig.doc.subtotal) : 0;
         const totals = docTotals(
-          lines as { qty: number; rate: number; discountPct: number }[],
+          lines as { qty: number; rate: number; discountPct: number; discountAmt: number }[],
           discount,
           orig.doc.taxPct,
         );
@@ -369,6 +383,8 @@ export async function prepareDocument(
           if (qty <= 0) fail(`Line ${i + 1}: quantity must be a positive whole number.`);
           const rate = l.rate ?? p.costPrice;
           const discountPct = l.discountPct ?? 0;
+          const discountAmt = l.discountAmt ?? 0;
+          if (discountAmt > rate) fail(`Line ${i + 1}: the discount is more than the rate.`);
           return {
             lineNo: i + 1,
             productId: p.id,
@@ -376,7 +392,8 @@ export async function prepareDocument(
             qty,
             rate,
             discountPct,
-            amount: lineAmount({ qty, rate, discountPct }),
+            discountAmt,
+            amount: lineAmount({ qty, rate, discountPct, discountAmt }),
           };
         });
       } else {
@@ -397,6 +414,8 @@ export async function prepareDocument(
           if (qty <= 0) fail(`Line ${i + 1}: quantity must be positive.`);
           const rate = l.rate ?? 0;
           const discountPct = l.discountPct ?? 0;
+          const discountAmt = l.discountAmt ?? 0;
+          if (discountAmt > rate) fail(`Line ${i + 1}: the discount is more than the rate.`);
           return {
             lineNo: i + 1,
             accountId: a.id,
@@ -404,14 +423,15 @@ export async function prepareDocument(
             qty,
             rate,
             discountPct,
-            amount: lineAmount({ qty, rate, discountPct }),
+            discountAmt,
+            amount: lineAmount({ qty, rate, discountPct, discountAmt }),
           };
         });
       }
       const discount = input.discount ?? 0;
       const taxPct = input.taxPct ?? 0;
       const totals = docTotals(
-        lines as { qty: number; rate: number; discountPct: number }[],
+        lines as { qty: number; rate: number; discountPct: number; discountAmt: number }[],
         discount,
         taxPct,
       );

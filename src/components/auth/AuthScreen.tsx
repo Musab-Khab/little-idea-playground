@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouteContext, useRouter } from "@tanstack/react-router";
-import { BookOpen, KeyRound, LockKeyhole, ShieldCheck, Smartphone } from "lucide-react";
+import { KeyRound, LockKeyhole, ShieldCheck, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,14 +23,8 @@ export function AuthScreen() {
   return (
     <main className="grid min-h-screen place-items-center bg-background p-6">
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-card">
-        <div className="mb-8 flex items-center gap-3">
-          <span className="grid size-12 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <BookOpen />
-          </span>
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground">TURNKEY PUBLISHERS</p>
-            <h1 className="text-3xl font-extrabold text-navy">MFAHH</h1>
-          </div>
+        <div className="mb-8 flex justify-center">
+          <img src="/brand/turnkey-logo.png" alt="Turnkey Publishers" className="h-28" />
         </div>
         {authState.stage === "signedOut" && <LoginForm onDone={refresh} />}
         {authState.stage === "mfa" && <MfaForm onDone={refresh} />}

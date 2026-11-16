@@ -17,6 +17,7 @@ import { Route as AuthenticatedCustomersRouteImport } from './routes/_authentica
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedSuppliersRouteImport } from './routes/_authenticated/suppliers'
 import { Route as PrintIdRouteImport } from './routes/print.$id'
+import { Route as PrintMonthlyPackRouteImport } from './routes/print.monthly-pack'
 import { Route as PrintStatementRouteImport } from './routes/print.statement'
 import { Route as AuthenticatedInventoryAdjustmentsRouteImport } from './routes/_authenticated/inventory.adjustments'
 import { Route as AuthenticatedInventoryBooksRouteImport } from './routes/_authenticated/inventory.books'
@@ -48,6 +49,7 @@ import { Route as AuthenticatedTransactionsExpensesRouteImport } from './routes/
 import { Route as AuthenticatedTransactionsGeneralLedgerRouteImport } from './routes/_authenticated/transactions.general-ledger'
 import { Route as AuthenticatedTransactionsJournalRouteImport } from './routes/_authenticated/transactions.journal'
 import { Route as AuthenticatedTransactionsOpeningBalancesRouteImport } from './routes/_authenticated/transactions.opening-balances'
+import { Route as AuthenticatedTransactionsVouchersRouteImport } from './routes/_authenticated/transactions.vouchers'
 import { Route as ApiFilesBackupNameRouteImport } from './routes/api/files/backup.$name'
 import { Route as ApiFilesStaffDocumentIdRouteImport } from './routes/api/files/staff-document.$id'
 
@@ -88,6 +90,11 @@ const AuthenticatedSuppliersRoute = AuthenticatedSuppliersRouteImport.update({
 const PrintIdRoute = PrintIdRouteImport.update({
   id: '/print/$id',
   path: '/print/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrintMonthlyPackRoute = PrintMonthlyPackRouteImport.update({
+  id: '/print/monthly-pack',
+  path: '/print/monthly-pack',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrintStatementRoute = PrintStatementRouteImport.update({
@@ -274,6 +281,12 @@ const AuthenticatedTransactionsOpeningBalancesRoute =
     path: '/transactions/opening-balances',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTransactionsVouchersRoute =
+  AuthenticatedTransactionsVouchersRouteImport.update({
+    id: '/transactions/vouchers',
+    path: '/transactions/vouchers',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiFilesBackupNameRoute = ApiFilesBackupNameRouteImport.update({
   id: '/api/files/backup/$name',
   path: '/api/files/backup/$name',
@@ -293,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AuthenticatedReportsRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
   '/print/$id': typeof PrintIdRoute
+  '/print/monthly-pack': typeof PrintMonthlyPackRoute
   '/print/statement': typeof PrintStatementRoute
   '/inventory/adjustments': typeof AuthenticatedInventoryAdjustmentsRoute
   '/inventory/books': typeof AuthenticatedInventoryBooksRoute
@@ -324,6 +338,7 @@ export interface FileRoutesByFullPath {
   '/transactions/general-ledger': typeof AuthenticatedTransactionsGeneralLedgerRoute
   '/transactions/journal': typeof AuthenticatedTransactionsJournalRoute
   '/transactions/opening-balances': typeof AuthenticatedTransactionsOpeningBalancesRoute
+  '/transactions/vouchers': typeof AuthenticatedTransactionsVouchersRoute
   '/api/files/backup/$name': typeof ApiFilesBackupNameRoute
   '/api/files/staff-document/$id': typeof ApiFilesStaffDocumentIdRoute
 }
@@ -334,6 +349,7 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsRoute
   '/suppliers': typeof AuthenticatedSuppliersRoute
   '/print/$id': typeof PrintIdRoute
+  '/print/monthly-pack': typeof PrintMonthlyPackRoute
   '/print/statement': typeof PrintStatementRoute
   '/': typeof AuthenticatedIndexRoute
   '/inventory/adjustments': typeof AuthenticatedInventoryAdjustmentsRoute
@@ -366,6 +382,7 @@ export interface FileRoutesByTo {
   '/transactions/general-ledger': typeof AuthenticatedTransactionsGeneralLedgerRoute
   '/transactions/journal': typeof AuthenticatedTransactionsJournalRoute
   '/transactions/opening-balances': typeof AuthenticatedTransactionsOpeningBalancesRoute
+  '/transactions/vouchers': typeof AuthenticatedTransactionsVouchersRoute
   '/api/files/backup/$name': typeof ApiFilesBackupNameRoute
   '/api/files/staff-document/$id': typeof ApiFilesStaffDocumentIdRoute
 }
@@ -378,6 +395,7 @@ export interface FileRoutesById {
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/suppliers': typeof AuthenticatedSuppliersRoute
   '/print/$id': typeof PrintIdRoute
+  '/print/monthly-pack': typeof PrintMonthlyPackRoute
   '/print/statement': typeof PrintStatementRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/inventory/adjustments': typeof AuthenticatedInventoryAdjustmentsRoute
@@ -410,6 +428,7 @@ export interface FileRoutesById {
   '/_authenticated/transactions/general-ledger': typeof AuthenticatedTransactionsGeneralLedgerRoute
   '/_authenticated/transactions/journal': typeof AuthenticatedTransactionsJournalRoute
   '/_authenticated/transactions/opening-balances': typeof AuthenticatedTransactionsOpeningBalancesRoute
+  '/_authenticated/transactions/vouchers': typeof AuthenticatedTransactionsVouchersRoute
   '/api/files/backup/$name': typeof ApiFilesBackupNameRoute
   '/api/files/staff-document/$id': typeof ApiFilesStaffDocumentIdRoute
 }
@@ -423,6 +442,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/suppliers'
     | '/print/$id'
+    | '/print/monthly-pack'
     | '/print/statement'
     | '/inventory/adjustments'
     | '/inventory/books'
@@ -454,6 +474,7 @@ export interface FileRouteTypes {
     | '/transactions/general-ledger'
     | '/transactions/journal'
     | '/transactions/opening-balances'
+    | '/transactions/vouchers'
     | '/api/files/backup/$name'
     | '/api/files/staff-document/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -464,6 +485,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/suppliers'
     | '/print/$id'
+    | '/print/monthly-pack'
     | '/print/statement'
     | '/'
     | '/inventory/adjustments'
@@ -496,6 +518,7 @@ export interface FileRouteTypes {
     | '/transactions/general-ledger'
     | '/transactions/journal'
     | '/transactions/opening-balances'
+    | '/transactions/vouchers'
     | '/api/files/backup/$name'
     | '/api/files/staff-document/$id'
   id:
@@ -507,6 +530,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reports'
     | '/_authenticated/suppliers'
     | '/print/$id'
+    | '/print/monthly-pack'
     | '/print/statement'
     | '/_authenticated/'
     | '/_authenticated/inventory/adjustments'
@@ -539,6 +563,7 @@ export interface FileRouteTypes {
     | '/_authenticated/transactions/general-ledger'
     | '/_authenticated/transactions/journal'
     | '/_authenticated/transactions/opening-balances'
+    | '/_authenticated/transactions/vouchers'
     | '/api/files/backup/$name'
     | '/api/files/staff-document/$id'
   fileRoutesById: FileRoutesById
@@ -547,6 +572,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   PrintIdRoute: typeof PrintIdRoute
+  PrintMonthlyPackRoute: typeof PrintMonthlyPackRoute
   PrintStatementRoute: typeof PrintStatementRoute
   ApiFilesBackupNameRoute: typeof ApiFilesBackupNameRoute
   ApiFilesStaffDocumentIdRoute: typeof ApiFilesStaffDocumentIdRoute
@@ -608,6 +634,13 @@ declare module '@tanstack/react-router' {
       path: '/print/$id'
       fullPath: '/print/$id'
       preLoaderRoute: typeof PrintIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/print/monthly-pack': {
+      id: '/print/monthly-pack'
+      path: '/print/monthly-pack'
+      fullPath: '/print/monthly-pack'
+      preLoaderRoute: typeof PrintMonthlyPackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/print/statement': {
@@ -827,6 +860,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsOpeningBalancesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/transactions/vouchers': {
+      id: '/_authenticated/transactions/vouchers'
+      path: '/transactions/vouchers'
+      fullPath: '/transactions/vouchers'
+      preLoaderRoute: typeof AuthenticatedTransactionsVouchersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/files/backup/$name': {
       id: '/api/files/backup/$name'
       path: '/api/files/backup/$name'
@@ -880,6 +920,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTransactionsGeneralLedgerRoute: typeof AuthenticatedTransactionsGeneralLedgerRoute
   AuthenticatedTransactionsJournalRoute: typeof AuthenticatedTransactionsJournalRoute
   AuthenticatedTransactionsOpeningBalancesRoute: typeof AuthenticatedTransactionsOpeningBalancesRoute
+  AuthenticatedTransactionsVouchersRoute: typeof AuthenticatedTransactionsVouchersRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -930,6 +971,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTransactionsJournalRoute: AuthenticatedTransactionsJournalRoute,
   AuthenticatedTransactionsOpeningBalancesRoute:
     AuthenticatedTransactionsOpeningBalancesRoute,
+  AuthenticatedTransactionsVouchersRoute:
+    AuthenticatedTransactionsVouchersRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -939,6 +982,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   PrintIdRoute: PrintIdRoute,
+  PrintMonthlyPackRoute: PrintMonthlyPackRoute,
   PrintStatementRoute: PrintStatementRoute,
   ApiFilesBackupNameRoute: ApiFilesBackupNameRoute,
   ApiFilesStaffDocumentIdRoute: ApiFilesStaffDocumentIdRoute,

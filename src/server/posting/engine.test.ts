@@ -263,6 +263,62 @@ run("posting engine", () => {
     expect((await doc(invoiceId)).status).toBe("Cancelled");
   });
 
+  it("applies a customer's fixed discounts on the server, including Rs-per-copy ones", async () => {
+    const [fixed] = await db()
+      .insert(t.customers)
+      .values({
+        code: "C2",
+        name: "Fixed Discount School",
+        category: "School",
+        discountType: "Percentage",
+        discountValue: 10,
+        discountMode: "Fixed",
+        categoryDiscounts: [{ category: "Textbook", type: "Amount", value: 15 }],
+      })
+      .returning();
+    const salesBefore = await balance("SALES");
+    // The typed 50% is ignored: Textbook lines get Rs 15 off each copy.
+    const si = await newDoc({
+      type: "SI",
+      date: today,
+      partyId: fixed!.id,
+      lines: [{ productId: bookId, qty: 10, rate: 100, discountPct: 50 }],
+    });
+    const [line] = await db()
+      .select()
+      .from(t.documentLines)
+      .where(eq(t.documentLines.documentId, si.id));
+    expect([line!.discountPct, line!.discountAmt, line!.amount]).toEqual([0, 15, 850]);
+    expect((await doc(si.id)).total).toBe(850);
+    expect(await balance("SALES")).toBe(salesBefore - 850);
+
+    // Returns carry the original line's per-copy discount.
+    const sr = await newDoc({
+      type: "SR",
+      date: today,
+      partyId: fixed!.id,
+      refDocId: si.id,
+      extra: { reason: "extra copies" },
+      lines: [{ refLineId: line!.id, qty: 2 }],
+    });
+    expect((await doc(sr.id)).total).toBe(170);
+
+    // An editable customer's discount cannot exceed the rate.
+    await expect(
+      engine.createDocument(maker, {
+        type: "SI",
+        date: today,
+        partyId: customerId,
+        lines: [{ productId: bookId, qty: 1, rate: 100, discountAmt: 120 }],
+      }),
+    ).rejects.toThrow(/discount is more than the rate/);
+
+    await engine.cancelDocument(checker, sr.id, "test cleanup");
+    await engine.cancelDocument(checker, si.id, "test cleanup");
+    expect((await product()).stockQty).toBe(150);
+    expect(await balance("SALES")).toBe(salesBefore);
+  });
+
   it("samples reduce stock at cost without a sale, and returns restore it", async () => {
     const smp = await engine.createDocument(maker, {
       type: "SMP",

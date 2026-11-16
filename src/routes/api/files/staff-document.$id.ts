@@ -11,7 +11,7 @@ export const Route = createFileRoute("/api/files/staff-document/$id")({
         const { eq } = await import("drizzle-orm");
         const { readFile } = await import("node:fs/promises");
         const { join } = await import("node:path");
-        const { storageDir } = await import("@/server/functions/hr");
+        const { storageDir } = await import("@/server/storage");
         const { writeAudit } = await import("@/server/audit");
         try {
           const user = await requireUser();

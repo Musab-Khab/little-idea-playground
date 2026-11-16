@@ -29,7 +29,7 @@ import {
 import { todayISO } from "@/shared/documents";
 
 export const Route = createFileRoute("/_authenticated/staff/attendance-and-leave")({
-  head: () => ({ meta: [{ title: "Attendance & Leave – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Attendance & Leave – Turnkey Publishers" }] }),
   component: AttendancePage,
 });
 

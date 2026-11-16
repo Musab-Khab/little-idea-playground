@@ -11,7 +11,7 @@ import { formatDateTime } from "@/lib/format";
 import { listAuditLog, verifyAuditChain } from "@/server/functions/admin";
 
 export const Route = createFileRoute("/_authenticated/settings/audit-log")({
-  head: () => ({ meta: [{ title: "Audit Log – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Audit Log – Turnkey Publishers" }] }),
   component: AuditLog,
 });
 

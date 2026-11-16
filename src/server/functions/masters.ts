@@ -1,14 +1,26 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { and, asc, eq, ne, sql } from "drizzle-orm";
-import { getDb } from "../db/client";
+import { getDb, type Tx } from "../db/client";
 import * as t from "../db/schema";
 import { diff, writeAudit } from "../audit";
 import { assertPerm, requireUser, type SessionUser } from "../security/session";
 import { safe, toRows, type Row } from "./_safe";
 import type { Permission } from "@/shared/permissions";
-import { todayISO } from "@/shared/documents";
-import { CUSTOMER_CATEGORIES, PRODUCT_CATEGORIES, SUPPLIER_CATEGORIES } from "@/shared/masters";
+import {
+  DISCOUNT_MODES,
+  DISCOUNT_TYPES,
+  discountLabel,
+  parseCategoryDiscounts,
+  todayISO,
+} from "@/shared/documents";
+import {
+  AUTO_CODE_PREFIX,
+  CATEGORY_KIND_KEYS,
+  CATEGORY_KINDS,
+  nextCode,
+  type CategoryKind,
+} from "@/shared/masters";
 
 const str = (max = 200) => z.string().trim().max(max).default("");
 const req = (label: string, max = 200) => z.string().trim().min(1, `${label} is required`).max(max);
@@ -21,8 +33,35 @@ const isoDate = z
   .or(z.literal("").transform(() => null));
 const email = z.string().trim().max(200).email("Invalid email").or(z.literal("")).default("");
 
+const discountValue = z.coerce.number().finite().min(0, "Discounts cannot be negative").max(1e9);
+const pctOk = (d: { type: string; value: number }) => d.type === "Amount" || d.value <= 100;
+const customerDiscounts = {
+  discountType: z.enum(DISCOUNT_TYPES).default("Percentage"),
+  discountValue: discountValue.default(0),
+  discountMode: z.enum(DISCOUNT_MODES).default("Editable"),
+  categoryDiscounts: z.preprocess(
+    parseCategoryDiscounts,
+    z
+      .array(
+        z
+          .object({
+            category: req("Discount category", 100),
+            type: z.enum(DISCOUNT_TYPES),
+            value: discountValue,
+          })
+          .refine(pctOk, "A percentage discount cannot be more than 100%"),
+      )
+      .max(50)
+      .refine(
+        (l) => new Set(l.map((d) => d.category)).size === l.length,
+        "Each book category can have only one discount",
+      ),
+  ),
+};
+
 const partyFields = {
-  code: req("Code", 30),
+  /** Blank = next automatic code (AUTO_CODE_PREFIX). */
+  code: str(30),
   name: req("Name"),
   contactPerson: str(),
   phone: str(50),
@@ -39,17 +78,24 @@ const ENTITIES = {
     table: t.customers,
     perm: "customers.manage",
     label: "Customer",
-    schema: z.object({
-      ...partyFields,
-      category: z.enum(CUSTOMER_CATEGORIES),
-      creditLimit: amount,
-    }),
+    schema: z
+      .object({
+        ...partyFields,
+        category: req("Customer type", 100),
+        location: req("Location", 100),
+        creditLimit: amount,
+        ...customerDiscounts,
+      })
+      .refine(
+        (c) => pctOk({ type: c.discountType, value: c.discountValue }),
+        "A percentage discount cannot be more than 100%",
+      ),
   },
   suppliers: {
     table: t.suppliers,
     perm: "suppliers.manage",
     label: "Supplier",
-    schema: z.object({ ...partyFields, category: z.enum(SUPPLIER_CATEGORIES) }),
+    schema: z.object({ ...partyFields, category: req("Category", 100) }),
   },
   products: {
     table: t.products,
@@ -62,7 +108,7 @@ const ENTITIES = {
       className: str(50),
       series: str(100),
       edition: str(50),
-      category: z.enum(PRODUCT_CATEGORIES),
+      category: req("Category", 100),
       costPrice: amount,
       salePrice: amount,
       minStock: z.coerce.number().int().min(0).max(1e7).default(0),
@@ -149,6 +195,178 @@ function maskStaff(user: SessionUser, row: Record<string, unknown>) {
   return copy;
 }
 
+/* ------------------------------------------------------------ categories */
+
+/** Which master columns hold a category name. */
+const CATEGORY_FIELDS: Partial<Record<MasterEntity, [string, CategoryKind][]>> = {
+  customers: [
+    ["category", "customerType"],
+    ["location", "customerLocation"],
+  ],
+  suppliers: [["category", "supplierCategory"]],
+  products: [["category", "productCategory"]],
+};
+const CATEGORY_USAGE = {
+  customerType: { table: t.customers, field: "category", perm: "customers.manage" },
+  customerLocation: { table: t.customers, field: "location", perm: "customers.manage" },
+  supplierCategory: { table: t.suppliers, field: "category", perm: "suppliers.manage" },
+  productCategory: { table: t.products, field: "category", perm: "books.manage" },
+} as const;
+const usageCol = (kind: CategoryKind) => {
+  const u = CATEGORY_USAGE[kind];
+  return (u.table as typeof t.customers)[u.field];
+};
+
+/** A master may only use an active category, or keep the (now inactive) one it already has. */
+async function assertCategory(tx: Tx, kind: CategoryKind, name: string, current: unknown) {
+  if (name === current) return;
+  const [cat] = await tx
+    .select()
+    .from(t.categories)
+    .where(and(eq(t.categories.kind, kind), eq(t.categories.name, name)));
+  const label = CATEGORY_KINDS[kind].replace(/s$/, "").toLowerCase();
+  if (!cat) throw new Error(`Unknown ${label} "${name}". Add it under Manage categories first.`);
+  if (cat.status !== "Active") throw new Error(`The ${label} "${name}" is inactive.`);
+}
+
+/** One category list with how many records use each entry. */
+export const listCategories = createServerFn({ method: "GET" })
+  .validator(z.object({ kind: z.enum(CATEGORY_KIND_KEYS) }))
+  .handler(({ data }) =>
+    safe(async () => {
+      const u = CATEGORY_USAGE[data.kind];
+      assertPerm(await requireUser(), u.perm, "reports.view");
+      const db = getDb();
+      const col = usageCol(data.kind);
+      const rows = await db
+        .select()
+        .from(t.categories)
+        .where(eq(t.categories.kind, data.kind))
+        .orderBy(asc(t.categories.name));
+      const used = await db
+        .select({ name: col, n: sql<number>`count(*)::int` })
+        .from(u.table)
+        .groupBy(col);
+      const n = new Map(used.map((r) => [r.name, r.n]));
+      return rows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        status: r.status,
+        records: n.get(r.name) ?? 0,
+      }));
+    }),
+  );
+
+/** Adds a category, or renames one (and every master that uses it) in one transaction. */
+export const saveCategory = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      kind: z.enum(CATEGORY_KIND_KEYS),
+      id: z.string().uuid().nullish(),
+      name: req("Name", 100),
+    }),
+  )
+  .handler(({ data }) =>
+    safe(async () => {
+      const user = await requireUser();
+      const u = CATEGORY_USAGE[data.kind];
+      assertPerm(user, u.perm);
+      const ref = `${CATEGORY_KINDS[data.kind]}: ${data.name}`;
+      return getDb().transaction(async (tx) => {
+        const [dup] = await tx
+          .select({ id: t.categories.id })
+          .from(t.categories)
+          .where(
+            and(
+              eq(t.categories.kind, data.kind),
+              sql`lower(${t.categories.name}) = lower(${data.name})`,
+              data.id ? ne(t.categories.id, data.id) : sql`true`,
+            ),
+          );
+        if (dup) throw new Error(`"${data.name}" already exists.`);
+        if (!data.id) {
+          const [row] = await tx
+            .insert(t.categories)
+            .values({ kind: data.kind, name: data.name, createdBy: user.id })
+            .returning();
+          await writeAudit(tx, user, {
+            action: "Created",
+            entity: "Category",
+            entityId: row!.id,
+            ref,
+          });
+          return { id: row!.id };
+        }
+        const [old] = await tx
+          .select()
+          .from(t.categories)
+          .where(and(eq(t.categories.id, data.id), eq(t.categories.kind, data.kind)))
+          .for("update");
+        if (!old) throw new Error("Category not found.");
+        if (old.name === data.name) return { id: old.id };
+        await tx
+          .update(t.categories)
+          .set({ name: data.name, editedBy: user.id, editedAt: new Date() })
+          .where(eq(t.categories.id, old.id));
+        const table = u.table as typeof t.customers;
+        const renamed = await tx
+          .update(table)
+          .set({ [u.field]: data.name } as never)
+          .where(eq(usageCol(data.kind), old.name))
+          .returning({ id: table.id });
+        await writeAudit(tx, user, {
+          action: "Edited",
+          entity: "Category",
+          entityId: old.id,
+          ref,
+          details: { name: { from: old.name, to: data.name }, recordsRenamed: renamed.length },
+        });
+        return { id: old.id };
+      });
+    }),
+  );
+
+/** Categories are never deleted: an inactive one stays on old records but cannot be chosen. */
+export const setCategoryStatus = createServerFn({ method: "POST" })
+  .validator(
+    z.object({ kind: z.enum(CATEGORY_KIND_KEYS), id: z.string().uuid(), active: z.boolean() }),
+  )
+  .handler(({ data }) =>
+    safe(async () => {
+      const user = await requireUser();
+      assertPerm(user, CATEGORY_USAGE[data.kind].perm);
+      const db = getDb();
+      const [row] = await db
+        .update(t.categories)
+        .set({
+          status: data.active ? "Active" : "Inactive",
+          editedBy: user.id,
+          editedAt: new Date(),
+        })
+        .where(and(eq(t.categories.id, data.id), eq(t.categories.kind, data.kind)))
+        .returning();
+      if (!row) throw new Error("Category not found.");
+      await writeAudit(db, user, {
+        action: data.active ? "Activated" : "Deactivated",
+        entity: "Category",
+        entityId: row.id,
+        ref: `${CATEGORY_KINDS[data.kind]}: ${row.name}`,
+      });
+      return { ok: true };
+    }),
+  );
+
+/** "10%", "Rs 25/copy (fixed)", "10% + 2 categories" for the customer list. */
+function customerDiscountLabel(c: typeof t.customers.$inferSelect) {
+  const rules = parseCategoryDiscounts(c.categoryDiscounts).length;
+  const parts = [
+    discountLabel(c.discountType, c.discountValue),
+    rules ? `${rules} categor${rules === 1 ? "y" : "ies"}` : "",
+  ].filter(Boolean);
+  if (!parts.length) return "";
+  return `${parts.join(" + ")}${c.discountMode === "Fixed" ? " (fixed)" : ""}`;
+}
+
 /** Lists a master with computed balances / stock figures. */
 export const listMasters = createServerFn({ method: "GET" })
   .validator(z.object({ entity: entityEnum }))
@@ -176,7 +394,12 @@ async function listRaw(entity: MasterEntity): Promise<object[]> {
           group by party_id`);
       const b = new Map(bal.map((r) => [r.party_id, Number(r.bal) * (isCust ? 1 : -1)]));
       const o = new Map(overdue.map((r) => [r.party_id, Number(r.amt)]));
-      return rows.map((r) => ({ ...r, balance: b.get(r.id) ?? 0, overdue: o.get(r.id) ?? 0 }));
+      return rows.map((r) => ({
+        ...r,
+        ...("discountType" in r ? { discount: customerDiscountLabel(r) } : {}),
+        balance: b.get(r.id) ?? 0,
+        overdue: o.get(r.id) ?? 0,
+      }));
     }
     case "products": {
       const rows = await db.select().from(t.products).orderBy(asc(t.products.code));
@@ -261,6 +484,21 @@ export const saveMaster = createServerFn({ method: "POST" })
           : undefined;
         if (data.id && !existing) throw new Error("Record not found.");
 
+        if ((data.entity === "customers" || data.entity === "suppliers") && !values["code"]) {
+          if (existing) throw new Error("Code is required");
+          // Serialise automatic numbering so two users saving at once cannot get the same code.
+          await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`code:${data.entity}`}))`);
+          const prefix = AUTO_CODE_PREFIX[data.entity];
+          const used = await tx
+            .select({ code: table.code })
+            .from(table)
+            .where(sql`${table.code} ilike ${`${prefix}-%`}`);
+          values["code"] = nextCode(
+            prefix,
+            used.map((r) => r.code),
+          );
+        }
+
         // Case-insensitive uniqueness on the business key.
         const keyField =
           "code" in values
@@ -281,6 +519,19 @@ export const saveMaster = createServerFn({ method: "POST" })
             ),
           );
         if (dup.length) throw new Error(`${def.label} ${String(values[keyField])} already exists.`);
+
+        for (const [field, kind] of CATEGORY_FIELDS[data.entity] ?? [])
+          await assertCategory(tx, kind, String(values[field]), existing?.[field]);
+        if (data.entity === "customers") {
+          const before = parseCategoryDiscounts(existing?.["categoryDiscounts"]);
+          for (const d of values["categoryDiscounts"] as { category: string }[])
+            await assertCategory(
+              tx,
+              "productCategory",
+              d.category,
+              before.find((b) => b.category === d.category)?.category,
+            );
+        }
 
         if (data.entity === "products" && existing) {
           const priceChanged =
@@ -455,6 +706,10 @@ export const getLookups = createServerFn({ method: "GET" }).handler(() =>
               code: t.customers.code,
               name: t.customers.name,
               creditDays: t.customers.creditDays,
+              discountType: t.customers.discountType,
+              discountValue: t.customers.discountValue,
+              discountMode: t.customers.discountMode,
+              categoryDiscounts: t.customers.categoryDiscounts,
               status: t.customers.status,
             })
             .from(t.customers)
@@ -531,6 +786,10 @@ export const getLookups = createServerFn({ method: "GET" }).handler(() =>
             .select({ id: t.leaveTypes.id, name: t.leaveTypes.name, status: t.leaveTypes.status })
             .from(t.leaveTypes)
         : [],
+      categories: await db
+        .select({ kind: t.categories.kind, name: t.categories.name, status: t.categories.status })
+        .from(t.categories)
+        .orderBy(asc(t.categories.name)),
       financialYears: await db
         .select()
         .from(t.financialYears)

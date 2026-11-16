@@ -1059,6 +1059,130 @@ export const getMonthlyManagement = createServerFn({ method: "GET" })
     }),
   );
 
+/**
+ * The month-end report pack Turnkey files every month: receivings, sales by book and by customer,
+ * receivables, expenses and inventory for one period.
+ */
+export const getMonthlyPack = createServerFn({ method: "GET" })
+  .validator(range)
+  .handler(({ data }) =>
+    safe(async () => {
+      await reportUser();
+      const db = getDb();
+      const { from, to } = data;
+      const [receipts, byProduct, byCustomer, receivables, expenses, inventory] = await Promise.all(
+        [
+          db.execute<Record<string, string>>(sql`
+          select d.date::text date, d.doc_no, c.name customer, d.narration, d.method, d.total amount
+          from documents d join customers c on c.id = d.party_id
+          where d.type = 'RV' and d.status = 'Approved' and d.date between ${from} and ${to}
+          order by d.date, d.doc_no`),
+          db.execute<Record<string, string>>(sql`
+          select p.code, p.name, p.category,
+            sum(case when d.type = 'SI' then l.qty else -l.qty end) qty,
+            sum((case when d.type = 'SI' then 1 else -1 end) * l.amount * (d.subtotal - d.discount) / nullif(d.subtotal, 0)) amount
+          from documents d join document_lines l on l.document_id = d.id join products p on p.id = l.product_id
+          where d.type in ('SI', 'SR') and d.status = 'Approved' and d.date between ${from} and ${to}
+          group by p.code, p.name, p.category order by p.category, p.name`),
+          db.execute<Record<string, string>>(sql`
+          select c.name customer, count(distinct case when d.type = 'SI' then d.id end) invoices,
+            sum(case when d.type = 'SI' then l.qty else -l.qty end) qty,
+            sum((case when d.type = 'SI' then 1 else -1 end) * l.amount * (d.subtotal - d.discount) / nullif(d.subtotal, 0)) amount
+          from documents d join document_lines l on l.document_id = d.id join customers c on c.id = d.party_id
+          where d.type in ('SI', 'SR') and d.status = 'Approved' and d.date between ${from} and ${to}
+          group by c.name order by amount desc`),
+          db.execute<Record<string, string>>(sql`
+          select c.name customer, c.phone,
+            sum(case when g.date < ${from} then g.debit - g.credit else 0 end) opening,
+            sum(case when g.date >= ${from} then g.debit else 0 end) debits,
+            sum(case when g.date >= ${from} then g.credit else 0 end) credits,
+            sum(g.debit - g.credit) closing
+          from gl_entries g join accounts a on a.id = g.account_id and a.system_key = 'AR'
+          join customers c on c.id = g.party_id
+          where g.party_type = 'customer' and g.date <= ${to}
+          group by c.name, c.phone
+          having sum(g.debit - g.credit) <> 0 or sum(case when g.date >= ${from} then g.debit + g.credit else 0 end) <> 0
+          order by closing desc`),
+          db.execute<Record<string, string>>(sql`
+          select d.date::text date, d.doc_no, h.name head, d.narration, d.method, d.total amount
+          from documents d join expense_heads h on h.id = d.expense_head_id
+          where d.type = 'EXP' and d.status = 'Approved' and d.date between ${from} and ${to}
+          order by d.date, d.doc_no`),
+          db.execute<Record<string, string>>(sql`
+          select p.code, p.name, p.category,
+            coalesce(sum(case when s.date < ${from} then s.qty_in - s.qty_out end), 0) opening,
+            coalesce(sum(case when s.date >= ${from} then s.qty_in end), 0) qty_in,
+            coalesce(sum(case when s.date >= ${from} then s.qty_out end), 0) qty_out,
+            coalesce(sum(s.qty_in - s.qty_out), 0) closing
+          from products p left join stock_ledger s on s.product_id = p.id and s.date <= ${to}
+          group by p.id, p.code, p.name, p.category
+          having coalesce(sum(s.qty_in - s.qty_out), 0) <> 0
+            or coalesce(sum(case when s.date >= ${from} then s.qty_in + s.qty_out end), 0) <> 0
+          order by p.category, p.name`),
+        ],
+      );
+      return {
+        receipts: toRows(
+          receipts.map((r) => ({
+            date: r["date"],
+            docNo: r["doc_no"],
+            customer: r["customer"],
+            description: r["narration"] || `${r["method"]} received`,
+            amount: n(r["amount"]),
+          })),
+        ),
+        salesByProduct: toRows(
+          byProduct.map((r) => ({
+            code: r["code"],
+            name: r["name"],
+            category: r["category"],
+            qty: Number(r["qty"]),
+            amount: n(r["amount"]),
+          })),
+        ),
+        salesByCustomer: toRows(
+          byCustomer.map((r) => ({
+            customer: r["customer"],
+            invoices: Number(r["invoices"]),
+            qty: Number(r["qty"]),
+            amount: n(r["amount"]),
+          })),
+        ),
+        receivables: toRows(
+          receivables.map((r) => ({
+            customer: r["customer"],
+            phone: r["phone"],
+            opening: n(r["opening"]),
+            debits: n(r["debits"]),
+            credits: n(r["credits"]),
+            closing: n(r["closing"]),
+          })),
+        ),
+        expenses: toRows(
+          expenses.map((r) => ({
+            date: r["date"],
+            docNo: r["doc_no"],
+            head: r["head"],
+            description: r["narration"],
+            method: r["method"],
+            amount: n(r["amount"]),
+          })),
+        ),
+        inventory: toRows(
+          inventory.map((r) => ({
+            code: r["code"],
+            name: r["name"],
+            category: r["category"],
+            opening: Number(r["opening"]),
+            qtyIn: Number(r["qty_in"]),
+            qtyOut: Number(r["qty_out"]),
+            closing: Number(r["closing"]),
+          })),
+        ),
+      };
+    }),
+  );
+
 /** Two-period comparison of the P&L with variance. */
 export const getComparative = createServerFn({ method: "GET" })
   .validator(z.object({ a: range, b: range }))

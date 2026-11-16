@@ -9,6 +9,8 @@ export const Route = createFileRoute("/auth")({
     if (state.stage === "signedIn") throw redirect({ to: "/" });
     return { authState: state };
   },
-  head: () => ({ meta: [{ title: "Sign in – MFAHH" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Sign in – Turnkey Publishers" }, { name: "robots", content: "noindex" }],
+  }),
   component: AuthScreen,
 });

@@ -38,7 +38,7 @@ export function KpiCard({
     <Tag
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 rounded-2xl border border-border p-3.5 text-left shadow-card transition",
+        "print:hidden flex items-center gap-3 rounded-2xl border border-border p-3.5 text-left shadow-card transition",
         t.bg,
         onClick && "cursor-pointer hover:-translate-y-0.5 hover:shadow-lg",
       )}

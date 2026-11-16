@@ -292,6 +292,21 @@ export const getDocument = createServerFn({ method: "GET" })
       const today = todayISO();
       const allLines = lines.map((l) => ({ qty: l.l.qty, doneQty: l.l.doneQty }));
       const p = names.get(d.partyId ?? "");
+      // Contact details for the "Bill to" block on prints.
+      const partyTable =
+        d.partyType === "customer" ? t.customers : d.partyType === "supplier" ? t.suppliers : null;
+      const [contact] =
+        partyTable && d.partyId
+          ? await db
+              .select({
+                address: partyTable.address,
+                city: partyTable.city,
+                phone: partyTable.phone,
+                ntn: partyTable.ntn,
+              })
+              .from(partyTable)
+              .where(eq(partyTable.id, d.partyId))
+          : [];
       return {
         doc: toRows([
           {
@@ -302,6 +317,9 @@ export const getDocument = createServerFn({ method: "GET" })
             ),
             partyName: p?.name ?? null,
             partyCode: p?.code ?? null,
+            partyAddress: [contact?.address, contact?.city].filter(Boolean).join(", ") || null,
+            partyPhone: contact?.phone || null,
+            partyNtn: contact?.ntn || null,
             createdByName: row.createdByName,
             approvedByName: row.approvedByName,
             bankName: row.bank,
@@ -538,6 +556,7 @@ export const sourceDocuments = createServerFn({ method: "GET" })
               remaining: l.qty - l.doneQty,
               rate: l.rate,
               discountPct: l.discountPct,
+              discountAmt: l.discountAmt,
             })),
         ),
       };

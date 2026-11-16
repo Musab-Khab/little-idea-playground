@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DocumentListPage } from "@/components/documents/DocumentListPage";
 
 export const Route = createFileRoute("/_authenticated/sales/orders")({
-  head: () => ({ meta: [{ title: "Sales Orders – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Sales Orders – Turnkey Publishers" }] }),
   component: () => (
     <DocumentListPage
       title="Sales Orders"

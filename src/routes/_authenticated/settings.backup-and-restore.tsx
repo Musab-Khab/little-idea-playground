@@ -20,7 +20,7 @@ import { formatDateTime } from "@/lib/format";
 import { getBackups, runBackup, runRestore } from "@/server/functions/admin";
 
 export const Route = createFileRoute("/_authenticated/settings/backup-and-restore")({
-  head: () => ({ meta: [{ title: "Backup & Restore – MFAHH" }] }),
+  head: () => ({ meta: [{ title: "Backup & Restore – Turnkey Publishers" }] }),
   component: Backups,
 });
 
