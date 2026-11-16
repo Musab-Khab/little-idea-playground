@@ -1,4 +1,5 @@
 # MFAHH roadmap (from MFAHH_frontend_prompt.md)
+- [x] Match voucher and receiving print layouts to uploaded templates; allow individual printing from the vouchers list
 - [x] Simplify cash receipt/expense/payment entry and remove bank screens without deleting history
 - [x] Improve daily-action navigation and create downloadable PDF user manual
 - [x] Customer default/category discounts, percentage/amount and fixed/editable sales pricing

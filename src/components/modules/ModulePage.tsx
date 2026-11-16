@@ -74,14 +74,15 @@ function RecordView({config,record,onClose,editable}:{config:ModuleConfig;record
 }
 
 const docTitles:Record<string,string>={salesInvoices:'Sales Invoice',purchaseInvoices:'Purchase Invoice',salesReturns:'Sales Return',purchaseReturns:'Supplier Return',expenses:'Expense Voucher',customerReceipts:'Receipt Voucher',supplierPayments:'Payment Voucher'};
-function printDoc(config:ModuleConfig,r:Row,data:ReturnType<typeof useAppStore.getState>['data']):PrintDoc|null{
+export function printDoc(config:ModuleConfig,r:Row,data:ReturnType<typeof useAppStore.getState>['data']):PrintDoc|null{
  const title=docTitles[config.collection];if(!title)return null;
  const isCustomer=Boolean(r['customerId']);const party=isCustomer?data.customers.find(c=>c.id===r['customerId']):data.suppliers.find(s=>s.id===r['supplierId']);
  const items=linesOf(r);const lines=items.length?items.map(l=>{const b=data.books.find(x=>x.id===l['bookId']);const amt=num(l,'qty')*num(l,'rate')*(1-num(l,'discountPct')/100);return {description:b?.name??text(l,'bookId'),code:b?.code??'',qty:num(l,'qty'),rate:num(l,'rate'),discountPct:num(l,'discountPct'),amount:amt};}):[{description:text(r,'description')||text(r,'head')||`Payment ${text(r,'ref')?'against '+text(r,'ref'):''}`,amount:num(r,'amount')}];
  const gross=lines.reduce((s,l)=>s+l.amount,0);const total=totalOf(r);
  const bank=data.bankAccounts.find(b=>b.id===r['bankId']);
  const info:[string,string][]=[['Number',text(r,'no')],['Date',formatDate(text(r,'date'))],...(r['dueDate']?[['Due date',formatDate(text(r,'dueDate'))] as [string,string]]:[]),...(r['invoiceNo']||r['refInvoice']?[['Original invoice',text(r,'invoiceNo')||text(r,'refInvoice')] as [string,string]]:[]),...(r['supplierRef']?[['Supplier ref',text(r,'supplierRef')] as [string,string]]:[]),...(r['method']?[['Paid via',text(r,'method')+(bank?` · ${bank.name}`:'')] as [string,string]]:[]),...(r['ref']?[['Reference',text(r,'ref')] as [string,string]]:[]),...(r['head']?[['Expense head',text(r,'head')] as [string,string]]:[]),...(r['condition']?[['Condition',text(r,'condition')] as [string,string]]:[]),['Prepared by',text(r,'createdBy')]];
- return {title,number:text(r,'no'),date:text(r,'date'),status:text(r,'docStatus'),partyLabel:party?(isCustomer?'Bill to':'Supplier'):'Paid to',partyName:party?.name??(text(r,'paidTo')||'—'),partyLines:party?[party.address,`Phone ${party.phone}`,party.ntn?`NTN ${party.ntn}`:'',party.code]:[],info,lines,showQty:items.length>0,
+ info.push(['Department',text(r,'department')],['Approved by',text(r,'approvedBy')]);
+ return {title,voucher:['expenses','customerReceipts','supplierPayments'].includes(config.collection),number:text(r,'no'),date:text(r,'date'),status:text(r,'docStatus'),partyLabel:party?(isCustomer?'Bill to':'Supplier'):'Paid to',partyName:party?.name??(text(r,'paidTo')||'—'),partyLines:party?[party.address,`Phone ${party.phone}`,party.ntn?`NTN ${party.ntn}`:'',party.code]:[],info,lines,showQty:items.length>0,
   totals:items.length?[['Gross amount',gross],...(num(r,'invoiceDiscount')?[['Invoice discount',-num(r,'invoiceDiscount')] as [string,number]]:[]),...(num(r,'taxPct')?[[`Tax ${num(r,'taxPct')}%`,total-(gross-num(r,'invoiceDiscount'))] as [string,number]]:[])]:[],
   grandTotal:total,remarks:text(r,'remarks')||text(r,'reason'),signatures:config.collection==='expenses'?['Prepared by','Checked by','Approved by','Received by']:['Prepared by','Approved by',isCustomer?'Customer signature':'Supplier signature']};
 }
